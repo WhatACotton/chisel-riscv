@@ -47,6 +47,25 @@ class Core extends Module {
 
   val imm_u = inst(31, 12)
   val imm_u_shifted = Cat(imm_u, Fill(12, 0.U))
+
+  val imm_z = inst(19, 15)
+  val imm_z_uext = Cat(Fill(27, 0.U), imm_z)
+
+  val csr_regfile = Mem(4096, UInt(WORD_LEN.W))
+  val csr_addr = inst(31, 20)
+  val csr_rdata = csr_regfile(csr_addr)
+  val csr_wdata = MuxCase(
+    0.U(WORD_LEN.W),
+    Seq(
+      (csr_cmd === CSR_W) -> op1_data,
+      (csr_cmd === CSR_S) -> (csr_rdata | op1_data),
+      (csr_cmd === CSR_C) -> (csr_rdata & ~op1_data)
+    )
+  )
+
+  when(csr_cmd > 0.U) {
+    csr_regfile(csr_addr) := csr_wdata
+  }
   val rs1_data =
     Mux((rs1_addr =/= 0.U(WORD_LEN.W)), regfile(rs1_addr), 0.U(WORD_LEN.W))
   val rs2_data =
@@ -86,10 +105,17 @@ class Core extends Module {
       JAL -> List(ALU_ADD, OP1_PC, OP2_IMJ, MEN_X, REN_S, WB_PC),
       JALR -> List(ALU_JALR, OP1_RS1, OP2_IMI, MEN_X, REN_S, WB_PC),
       LUI -> List(ALU_ADD, OP1_X, OP2_IMU, MEN_X, REN_S, WB_ALU),
-      AUIPC -> List(ALU_ADD, OP1_PC, OP2_IMU, MEN_X, REN_S, WB_ALU)
+      AUIPC -> List(ALU_ADD, OP1_PC, OP2_IMU, MEN_X, REN_S, WB_ALU),
+      CSRRW -> List(ALU_COPY1, OP1_RS1, OP2_X, MEN_X, REN_S, WB_CSR, CSR_W),
+      CSRRWI -> List(ALU_COPY1, OP1_IMZ, OP2_X, MEN_X, REN_S, WB_CSR, CSR_W),
+      CSRRS -> List(ALU_COPY1, OP1_RS1, OP2_X, MEN_X, REN_S, WB_CSR, CSR_S),
+      CSRRSI -> List(ALU_COPY1, OP1_IMZ, OP2_X, MEN_X, REN_S, WB_CSR, CSR_S),
+      CSRRC -> List(ALU_COPY1, OP1_RS1, OP2_X, MEN_X, REN_S, WB_CSR, CSR_C),
+      CSRRCI -> List(ALU_COPY1, OP1_IMZ, OP2_X, MEN_X, REN_S, WB_CSR, CSR_C)
     )
   )
-  val exe_fun :: op1_sel :: op2_sel :: mem_wen :: wb_sel :: Nil = csignals
+  val exe_fun :: op1_sel :: op2_sel :: mem_wen :: rf_wen :: wb_sel :: csr_cmd :: Nil =
+    csignals
 
   val op1_data = MuxCase(
     0.U(WORD_LEN.W),
@@ -123,7 +149,9 @@ class Core extends Module {
       (exe_fun === ALU_SRA) -> (op1_data.asSInt() >> op2_data(4, 0)).asUInt(),
       (exe_fun === ALU_SLT) -> (op1_data.asSInt() < op2_data.asSInt()).asUInt(),
       (exe_fun === ALU_SLTU) -> (op1_data < op2_data).asUInt(),
-      (exe_fun === ALU_JALR) -> (op1_data + op2_data) & ~1.U(WORD_LEN.W)
+      (exe_fun === ALU_JALR) -> (op1_data + op2_data) & ~1.U(WORD_LEN.W),
+      (exe_fun === ALU_JALR) -> (op1_data + op2_data) & ~1.U(WORD_LEN.W),
+      (exe_fun === ALU_COPY1) -> op1_data
     )
   )
 
@@ -149,7 +177,8 @@ class Core extends Module {
     alu_out,
     Seq(
       (wb_sel === WB_MEM) -> io.dmem.rdata,
-      (wb_sel === WB_PC) -> pc_plus4
+      (wb_sel === WB_PC) -> pc_plus4,
+      (wb_sel === WB_CSR) -> csr_rdata
     )
   )
 

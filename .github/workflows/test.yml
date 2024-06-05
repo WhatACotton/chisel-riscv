@@ -16,5 +16,7 @@ jobs:
         uses: actions/checkout@v4
       - name: build docker
         run: docker build -t chisel-riscv .
+      - name: list
+        run: ls
       - name: run docker test
         run: docker run -v ./src:/src chisel-riscv:latest sbt 'testOnly gcd.GCDSpec'

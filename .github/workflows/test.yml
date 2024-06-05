@@ -15,8 +15,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: build docker
-        run: docker build -t my-image .
-      - name: run docker
-        run: docker run -it -v ./src:/src chisel-riscv:latest
-      - name: test
-        run: cd src && sbt 'testOnly gcd.GCDSpec'
+        run: docker build -t chisel-riscv .
+      - name: run docker test
+        run: docker run -v ./src:/src chisel-riscv:latest sbt 'testOnly gcd.GCDSpec'

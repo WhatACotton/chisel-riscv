@@ -1,4 +1,4 @@
-package riscvtests
+package {package}
 
 import chisel3._
 import chisel3.util._
@@ -150,12 +150,9 @@ class Core extends Module {
     )
   )
 
-
-
   io.dmem.addr := alu_out
   io.dmem.wen := mem_wen
   io.dmem.wdata := rs2_data
-  
 
   val csr_addr = Mux(csr_cmd === CSR_E, 0x342.U(CSR_ADDR_LEN.W), inst(31, 20))
   val csr_rdata = csr_regfile(csr_addr)
@@ -185,7 +182,7 @@ class Core extends Module {
   when(rf_wen === REN_S) {
     regfile(wb_addr) := wb_data
   }
-io.gp := regfile(3)
+  io.gp := regfile(3)
   io.exit := (pc_reg === 0x44.U(WORD_LEN.W))
   printf(p"io.pc      : 0x${Hexadecimal(pc_reg)}\n")
   printf(p"inst       : 0x${Hexadecimal(inst)}\n")

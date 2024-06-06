@@ -1,0 +1,18 @@
+[info] welcome to sbt 1.9.7 (Ubuntu Java 11.0.19)
+[info] loading settings for project src-build from plugins.sbt ...
+[info] loading project definition from /src/project
+[info] loading settings for project root from build.sbt ...
+[info] set current project to %NAME% (in build file:/src/)
+[info] compiling 3 Scala sources to /src/target/scala-2.12/classes ...
+[error] /src/src/main/scala/Memory.scala:8:7: ImemPortIo is already defined as class ImemPortIo
+[error] class ImemPortIo extends Bundle {
+[error]       ^
+[error] /src/src/main/scala/Memory.scala:12:7: DmemPortIo is already defined as class DmemPortIo
+[error] class DmemPortIo extends Bundle {
+[error]       ^
+[error] /src/src/main/scala/Memory.scala:19:7: Memory is already defined as class Memory
+[error] class Memory extends Module {
+[error]       ^
+[error] three errors found
+[error] (Compile / compileIncremental) Compilation failed
+[error] Total time: 3 s, completed Jun 6, 2024, 12:36:16 PM

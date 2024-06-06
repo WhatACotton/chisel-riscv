@@ -1,0 +1,6 @@
+[warn] No sbt.version set in project/build.properties, base directory: /src/chisel-template
+[info] welcome to sbt 1.10.0 (Ubuntu Java 11.0.19)
+[info] set current project to chisel-template (in build file:/src/chisel-template/)
+[info] Passed: Total 0, Failed 0, Errors 0, Passed 0
+[info] No tests to run for Test / testOnly
+[success] Total time: 1 s, completed Jun 6, 2024, 12:30:55 PM

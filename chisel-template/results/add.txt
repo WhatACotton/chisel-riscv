@@ -1,0 +1,7 @@
+[warn] No sbt.version set in project/build.properties, base directory: /src/chisel-template
+[info] welcome to sbt 1.10.0 (Ubuntu Java 11.0.19)
+[info] set current project to chisel-template (in build file:/src/chisel-template/)
+
+[warn] Canceling execution...
+[error] Cancelled: testOnly riscvtests.RiscvTest
+[error] Use 'last' for the full log.

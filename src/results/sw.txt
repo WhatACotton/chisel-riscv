@@ -1,0 +1,1 @@
+[info] welcome to sbt 1.5.5 (Ubuntu Java 11.0.19)

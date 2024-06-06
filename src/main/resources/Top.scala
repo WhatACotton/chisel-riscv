@@ -1,4 +1,4 @@
-package riscvtests
+package {package}
 
 import chisel3._
 import common.Consts._

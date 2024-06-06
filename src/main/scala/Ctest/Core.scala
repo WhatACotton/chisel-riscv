@@ -1,4 +1,4 @@
-package riscvtests
+package ctest
 
 import chisel3._
 import chisel3.util._
@@ -183,7 +183,7 @@ class Core extends Module {
     regfile(wb_addr) := wb_data
   }
   io.gp := regfile(3)
-  io.exit := (pc_reg === 0x44.U(WORD_LEN.W))
+  io.exit := (inst === UNIMP)
   printf(p"io.pc      : 0x${Hexadecimal(pc_reg)}\n")
   printf(p"inst       : 0x${Hexadecimal(inst)}\n")
   printf(p"gp         : ${regfile(3)}\n")

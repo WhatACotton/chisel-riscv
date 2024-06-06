@@ -44,7 +44,7 @@ class Core extends Module {
   val imm_b_sext = Cat(Fill(19, imm_b(11)), imm_b, 0.U(1.U))
 
   val imm_j = Cat(inst(31), inst(19, 12), inst(20), inst(30, 21))
-  val imm_j_sext = Car(Fill(11, imm_j(19)), imm_j, 0.U(1.U))
+  val imm_j_sext = Cat(Fill(11, imm_j(19)), imm_j, 0.U(1.U))
 
   val imm_u = inst(31, 12)
   val imm_u_shifted = Cat(imm_u, Fill(12, 0.U))
@@ -53,7 +53,7 @@ class Core extends Module {
   val imm_z_uext = Cat(Fill(27, 0.U), imm_z)
 
   val csr_regfile = Mem(4096, UInt(WORD_LEN.W))
-  val csr_addr = Mux(csr_cmd === CSR_E,0x342.U(CSR_ADDR_LEN.W),inst(31, 20))
+  val csr_addr = Mux(csr_cmd === CSR_E, 0x342.U(CSR_ADDR_LEN.W), inst(31, 20))
   val csr_rdata = csr_regfile(csr_addr)
   val csr_wdata = MuxCase(
     0.U(WORD_LEN.W),
@@ -61,8 +61,7 @@ class Core extends Module {
       (csr_cmd === CSR_W) -> op1_data,
       (csr_cmd === CSR_S) -> (csr_rdata | op1_data),
       (csr_cmd === CSR_C) -> (csr_rdata & ~op1_data),
-      (csr_cmd === CSR_E) -> 11.(WORD_LEN.W)
-
+      (csr_cmd === CSR_E) -> 11.U(WORD_LEN.W)
     )
   )
 
@@ -153,8 +152,7 @@ class Core extends Module {
       (exe_fun === ALU_SRA) -> (op1_data.asSInt() >> op2_data(4, 0)).asUInt(),
       (exe_fun === ALU_SLT) -> (op1_data.asSInt() < op2_data.asSInt()).asUInt(),
       (exe_fun === ALU_SLTU) -> (op1_data < op2_data).asUInt(),
-      (exe_fun === ALU_JALR) -> (op1_data + op2_data) & ~1.U(WORD_LEN.W),
-      (exe_fun === ALU_JALR) -> (op1_data + op2_data) & ~1.U(WORD_LEN.W),
+      (exe_fun === ALU_JALR) -> ((op1_data + op2_data) & ~1.U(WORD_LEN.W)),
       (exe_fun === ALU_COPY1) -> op1_data
     )
   )
@@ -165,7 +163,7 @@ class Core extends Module {
       (exe_fun === BR_BEQ) -> (op1_data === op2_data),
       (exe_fun === BR_BNE) -> !(op1_data === op2_data),
       (exe_fun === BR_BLT) -> (op1_data.asSInt() < op2_data.asSInt()),
-      (exe_fun === BR_BGE) -> !(op1_data() < op2_data.asSInt()),
+      (exe_fun === BR_BGE) -> !(op1_data.asSInt() < op2_data.asSInt()),
       (exe_fun === BR_BLTU) -> (op1_data < op2_data),
       (exe_fun === BR_BGEU) -> !(op1_data < op2_data)
     )

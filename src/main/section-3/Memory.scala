@@ -1,4 +1,4 @@
-package {package}
+package cpu
 
 import chisel3._
 import chisel3.util._
@@ -22,7 +22,7 @@ class Memory extends Module {
     val dmem = new DmemPortIo()
   })
   val mem = Mem(16384, UInt(8.W))
-  loadMemoryFromFile(mem, "src/hex/rv32{isa}-p-{inst}.hex")
+  loadMemoryFromFile(mem, "src/hex/ctest.hex")
 
   io.imem.inst := Cat(
     mem(io.imem.addr + 3.U(WORD_LEN.W)),

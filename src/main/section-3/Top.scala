@@ -1,4 +1,4 @@
-package {package}
+package cpu
 
 import chisel3._
 import common.Consts._

@@ -1,4 +1,4 @@
-package cpu
+package pipeline
 
 import chisel3._
 import chisel3.util._
@@ -20,7 +20,7 @@ class Core extends Module {
   io.imem.addr := if_pc_reg
   val if_inst = io.imem.inst
   val exe_br_flg = Wire(Bool())
-  val exe_jmp_flg = (inst === JAL || inst === JALR)
+  val exe_jmp_flg = (Bool())
   val exe_alu_out = Wire(UInt(WORD_LEN.W))
 
   val if_pc_plus4 = if_pc_reg + 4.U(WORD_LEN.W)
@@ -36,9 +36,6 @@ class Core extends Module {
   if_pc_reg := if_pc_next
   val id_reg_pc = RegInit(0.U(WORD_LEN.W))
   val id_reg_inst = RegInit(0.U(WORD_LEN.W))
-
-  id_reg_inst := if_reg_pc
-  id_reg_inst := if_inst
 
   val exe_reg_pc = RegInit(0.U(WORD_LEN.W))
   val exe_reg_wb_addr = RegInit(0.U(WORD_LEN.W))
@@ -105,7 +102,7 @@ class Core extends Module {
   wb_reg_rf_wen := mem_reg_rf_wen
   wb_reg_wb_data := mem_wb_data
 
-  val br_target = Wire(UInt(WORD_LEN.W))
+  val exe_br_target = Wire(UInt(WORD_LEN.W))
 
   val id_rs1_addr = id_reg_inst(19, 15)
   val id_rs2_addr = id_reg_inst(24, 20)
@@ -197,7 +194,7 @@ class Core extends Module {
     0.U(WORD_LEN.W),
     Seq(
       (id_op1_sel === OP1_RS1) -> id_rs1_data,
-      (id_op1_sel === OP1_PC) -> id_pc_reg,
+      (id_op1_sel === OP1_PC) -> id_reg_pc,
       (id_op1_sel === OP1_IMZ) -> id_imm_z_uext
     )
   )
@@ -291,17 +288,20 @@ class Core extends Module {
   }
   io.gp := regfile(3)
   io.exit := (inst === UNIMP)
-  printf(p"io.pc      : 0x${Hexadecimal(pc_reg)}\n")
-  printf(p"inst       : 0x${Hexadecimal(inst)}\n")
-  printf(p"gp         : ${regfile(3)}\n")
-  printf(p"rs1_addr   : $rs1_addr\n")
-  printf(p"rs2_addr   : $rs2_addr\n")
-  printf(p"wb_addr    : $wb_addr\n")
-  printf(p"rs1_data   : 0x${Hexadecimal(rs1_data)}\n")
-  printf(p"rs2_data   : 0x${Hexadecimal(rs2_data)}\n")
-  printf(p"wb_data    : 0x${Hexadecimal(wb_data)}\n")
-  printf(p"dmem.addr  : ${io.dmem.addr}\n")
-  printf(p"dmem.rdata : ${io.dmem.rdata}\n")
+  printf(p"if_reg_pc    : 0x${Hexadecimal(if_reg_pc)}\n")
+  printf(p"id_reg_pc    : 0x${Hexadecimal(id_reg_pc)}\n")
+  printf(p"id_reg_inst    : 0x${Hexadecimal(id_reg_inst)}\n")
+  printf(p"id_inst    : 0x${Hexadecimal(id_inst)}\n")
+  printf(p"id_rs1_data    : 0x${Hexadecimal(id_rs1_data)}\n")
+  printf(p"id_rs2_data    : 0x${Hexadecimal(id_rs2_data)}\n")
+  printf(p"exe_reg_pc    : 0x${Hexadecimal(exe_reg_pc)}\n")
+  printf(p"exe_reg_op1_data    : 0x${Hexadecimal(exe_reg_op1_data)}\n")
+  printf(p"exe_reg_op2_data    : 0x${Hexadecimal(exe_reg_op2_data)}\n")
+  printf(p"exe_alu_out    : 0x${Hexadecimal(exe_alu_out)}\n")
+  printf(p"mem_reg_pc    : 0x${Hexadecimal(mem_reg_pc)}\n")
+  printf(p"mem_wb_data    : 0x${Hexadecimal(mem_wb_data)}\n")
+  printf(p"wb_reg_wb_data    : 0x${Hexadecimal(wb_reg_wb_data)}\n")
+
   printf("---------\n")
 
 }

@@ -1,4 +1,4 @@
-package cpu
+package pipeline
 
 import chisel3._
 import chisel3.util._
@@ -18,9 +18,14 @@ class Core extends Module {
   val regfile = Mem(32, UInt(WORD_LEN.W))
   val csr_regfile = Mem(4096, UInt(WORD_LEN.W))
 
+  // **********************************
+  // Pipeline State Registers
+
+  // IF/ID State
   val id_reg_pc = RegInit(0.U(WORD_LEN.W))
   val id_reg_inst = RegInit(0.U(WORD_LEN.W))
 
+  // ID/EX State
   val exe_reg_pc = RegInit(0.U(WORD_LEN.W))
   val exe_reg_wb_addr = RegInit(0.U(ADDR_LEN.W))
   val exe_reg_op1_data = RegInit(0.U(WORD_LEN.W))
@@ -38,6 +43,7 @@ class Core extends Module {
   val exe_reg_imm_u_shifted = RegInit(0.U(WORD_LEN.W))
   val exe_reg_imm_z_uext = RegInit(0.U(WORD_LEN.W))
 
+  // EX/MEM State
   val mem_reg_pc = RegInit(0.U(WORD_LEN.W))
   val mem_reg_wb_addr = RegInit(0.U(ADDR_LEN.W))
   val mem_reg_op1_data = RegInit(0.U(WORD_LEN.W))
@@ -50,18 +56,22 @@ class Core extends Module {
   val mem_reg_imm_z_uext = RegInit(0.U(WORD_LEN.W))
   val mem_reg_alu_out = RegInit(0.U(WORD_LEN.W))
 
+  // MEM/WB State
   val wb_reg_wb_addr = RegInit(0.U(ADDR_LEN.W))
   val wb_reg_rf_wen = RegInit(0.U(REN_LEN.W))
   val wb_reg_wb_data = RegInit(0.U(WORD_LEN.W))
+
+  // **********************************
+  // Instruction Fetch (IF) Stage
 
   val if_reg_pc = RegInit(START_ADDR)
   io.imem.addr := if_reg_pc
   val if_inst = io.imem.inst
 
   val exe_br_flg = Wire(Bool())
+  val exe_br_target = Wire(UInt(WORD_LEN.W))
   val exe_jmp_flg = Wire(Bool())
   val exe_alu_out = Wire(UInt(WORD_LEN.W))
-  val exe_br_target = Wire(UInt(WORD_LEN.W))
 
   val if_pc_plus4 = if_reg_pc + 4.U(WORD_LEN.W)
   val if_pc_next = MuxCase(
@@ -74,8 +84,13 @@ class Core extends Module {
   )
   if_reg_pc := if_pc_next
 
+  // **********************************
+  // IF/ID Register
   id_reg_pc := if_reg_pc
   id_reg_inst := if_inst
+
+  // **********************************
+  // Instruction Decode (ID) Stage
 
   val id_rs1_addr = id_reg_inst(19, 15)
   val id_rs2_addr = id_reg_inst(24, 20)
@@ -170,7 +185,6 @@ class Core extends Module {
       (id_op1_sel === OP1_IMZ) -> id_imm_z_uext
     )
   )
-
   val id_op2_data = MuxCase(
     0.U(WORD_LEN.W),
     Seq(
@@ -181,9 +195,12 @@ class Core extends Module {
       (id_op2_sel === OP2_IMU) -> id_imm_u_shifted
     )
   )
+
   val id_csr_addr =
     Mux(id_csr_cmd === CSR_E, 0x342.U(CSR_ADDR_LEN.W), id_reg_inst(31, 20))
 
+  // **********************************
+  // ID/EX register
   exe_reg_pc := id_reg_pc
   exe_reg_op1_data := id_op1_data
   exe_reg_op2_data := id_op2_data
@@ -200,6 +217,9 @@ class Core extends Module {
   exe_reg_csr_addr := id_csr_addr
   exe_reg_csr_cmd := id_csr_cmd
   exe_reg_mem_wen := id_mem_wen
+
+  // **********************************
+  // Execute (EX) Stage
 
   exe_alu_out := MuxCase(
     0.U(WORD_LEN.W),
@@ -228,6 +248,8 @@ class Core extends Module {
       (exe_reg_exe_fun === ALU_COPY1) -> exe_reg_op1_data
     )
   )
+
+  // branch
   exe_br_flg := MuxCase(
     false.B,
     Seq(
@@ -242,8 +264,11 @@ class Core extends Module {
     )
   )
   exe_br_target := exe_reg_pc + exe_reg_imm_b_sext
+
   exe_jmp_flg := (exe_reg_wb_sel === WB_PC)
 
+  // **********************************
+  // EX/MEM register
   mem_reg_pc := exe_reg_pc
   mem_reg_op1_data := exe_reg_op1_data
   mem_reg_rs2_data := exe_reg_rs2_data
@@ -256,10 +281,14 @@ class Core extends Module {
   mem_reg_imm_z_uext := exe_reg_imm_z_uext
   mem_reg_mem_wen := exe_reg_mem_wen
 
+  // **********************************
+  // Memory Access Stage
+
   io.dmem.addr := mem_reg_alu_out
   io.dmem.wen := mem_reg_mem_wen
   io.dmem.wdata := mem_reg_rs2_data
 
+  // CSR
   val csr_rdata = csr_regfile(mem_reg_csr_addr)
   val csr_wdata = MuxCase(
     0.U(WORD_LEN.W),
@@ -284,13 +313,21 @@ class Core extends Module {
     )
   )
 
+  // **********************************
+  // MEM/WB regsiter
   wb_reg_wb_addr := mem_reg_wb_addr
   wb_reg_rf_wen := mem_reg_rf_wen
   wb_reg_wb_data := mem_wb_data
 
+  // **********************************
+  // Writeback (WB) Stage
+
   when(wb_reg_rf_wen === REN_S) {
     regfile(wb_reg_wb_addr) := wb_reg_wb_data
   }
+
+  // **********************************
+  // IO & Debug
   io.gp := regfile(3)
   io.exit := (id_reg_inst === UNIMP)
   printf(p"if_reg_pc        : 0x${Hexadecimal(if_reg_pc)}\n")
@@ -303,5 +340,4 @@ class Core extends Module {
   printf(p"mem_reg_pc       : 0x${Hexadecimal(mem_reg_pc)}\n")
   printf(p"mem_wb_data      : 0x${Hexadecimal(mem_wb_data)}\n")
   printf("---------\n")
-
 }

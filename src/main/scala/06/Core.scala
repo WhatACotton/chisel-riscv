@@ -2,43 +2,27 @@ package pipeline
 
 import chisel3._
 import chisel3.util._
-import common.Consts._
 import common.Instructions._
+import common.Consts._
 
 class Core extends Module {
-  val io = IO(new Bundle {
-    val imem = Flipped(new ImemPortIo())
-    val dmem = Flipped(new DmemPortIo())
-    val exit = Output(Bool())
-    val gp = Output(UInt(WORD_LEN.W))
-  })
+  val io = IO(
+    new Bundle {
+      val imem = Flipped(new ImemPortIo())
+      val dmem = Flipped(new DmemPortIo())
+      val gp = Output(UInt(WORD_LEN.W))
+      val exit = Output(Bool())
+    }
+  )
 
   val regfile = Mem(32, UInt(WORD_LEN.W))
   val csr_regfile = Mem(4096, UInt(WORD_LEN.W))
 
-  val if_pc_reg = RegInit(START_ADDR)
-  io.imem.addr := if_pc_reg
-  val if_inst = io.imem.inst
-  val exe_br_flg = Wire(Bool())
-  val exe_jmp_flg = (Bool())
-  val exe_alu_out = Wire(UInt(WORD_LEN.W))
-
-  val if_pc_plus4 = if_pc_reg + 4.U(WORD_LEN.W)
-
-  val if_pc_next = MuxCase(
-    if_pc_plus4,
-    Seq(
-      exe_br_flg -> exe_br_target,
-      exe_jmp_flg -> exe_alu_out,
-      (if_inst === ECALL) -> csr_regfile(0x305)
-    )
-  )
-  if_pc_reg := if_pc_next
   val id_reg_pc = RegInit(0.U(WORD_LEN.W))
   val id_reg_inst = RegInit(0.U(WORD_LEN.W))
 
   val exe_reg_pc = RegInit(0.U(WORD_LEN.W))
-  val exe_reg_wb_addr = RegInit(0.U(WORD_LEN.W))
+  val exe_reg_wb_addr = RegInit(0.U(ADDR_LEN.W))
   val exe_reg_op1_data = RegInit(0.U(WORD_LEN.W))
   val exe_reg_op2_data = RegInit(0.U(WORD_LEN.W))
   val exe_reg_rs2_data = RegInit(0.U(WORD_LEN.W))
@@ -54,24 +38,8 @@ class Core extends Module {
   val exe_reg_imm_u_shifted = RegInit(0.U(WORD_LEN.W))
   val exe_reg_imm_z_uext = RegInit(0.U(WORD_LEN.W))
 
-  exe_reg_pc := id_reg_pc
-  exe_reg_op1_data := id_op1_data
-  exe_reg_op2_data := id_op2_data
-  exe_reg_rs2_data := id_rs2_data
-  exe_reg_wb_addr := id_wb_addr
-  exe_reg_rf_wen := id_rf_wen
-  exe_reg_exe_fun := id_exe_fun
-  exe_reg_wb_sel := id_wb_sel
-  exe_reg_imm_i_sext := id_imm_i_sext
-  exe_reg_imm_b_sext := id_imm_b_sext
-  exe_reg_imm_u_shifted := id_imm_u_shifted
-  exe_reg_imm_z_uext := id_imm_z_uext
-  exe_reg_csr_addr := id_csr_addr
-  exe_reg_csr_cmd := id_csr_cmd
-  exe_reg_mem_wen := id_mem_wen
-
   val mem_reg_pc = RegInit(0.U(WORD_LEN.W))
-  val mem_reg_wb_addr = RegInit(0.U(WORD_LEN.W))
+  val mem_reg_wb_addr = RegInit(0.U(ADDR_LEN.W))
   val mem_reg_op1_data = RegInit(0.U(WORD_LEN.W))
   val mem_reg_rs2_data = RegInit(0.U(WORD_LEN.W))
   val mem_reg_mem_wen = RegInit(0.U(MEN_LEN.W))
@@ -82,43 +50,47 @@ class Core extends Module {
   val mem_reg_imm_z_uext = RegInit(0.U(WORD_LEN.W))
   val mem_reg_alu_out = RegInit(0.U(WORD_LEN.W))
 
-  mem_reg_pc := exe_reg_pc
-  mem_reg_op1_data := exe_reg_op1_data
-  mem_reg_rs2_data := exe_reg_rs2_data
-  mem_reg_wb_addr := exe_reg_wb_addr
-  mem_reg_alu_out := exe_alu_out
-  mem_reg_rf_wen := exe_reg_rf_wen
-  mem_reg_wb_sel := exe_reg_wb_sel
-  mem_reg_csr_addr := exe_reg_csr_addr
-  mem_reg_csr_cmd := exe_reg_csr_cmd
-  mem_reg_imm_z_uext := exe_reg_imm_z_uext
-  mem_reg_mem_wen := exe_reg_mem_wen
-
   val wb_reg_wb_addr = RegInit(0.U(ADDR_LEN.W))
   val wb_reg_rf_wen = RegInit(0.U(REN_LEN.W))
   val wb_reg_wb_data = RegInit(0.U(WORD_LEN.W))
 
-  wb_reg_wb_addr := mem_reg_wb_addr
-  wb_reg_rf_wen := mem_reg_rf_wen
-  wb_reg_wb_data := mem_wb_data
+  val if_reg_pc = RegInit(START_ADDR)
+  io.imem.addr := if_reg_pc
+  val if_inst = io.imem.inst
 
+  val exe_br_flg = Wire(Bool())
+  val exe_jmp_flg = Wire(Bool())
+  val exe_alu_out = Wire(UInt(WORD_LEN.W))
   val exe_br_target = Wire(UInt(WORD_LEN.W))
+
+  val if_pc_plus4 = if_reg_pc + 4.U(WORD_LEN.W)
+  val if_pc_next = MuxCase(
+    if_pc_plus4,
+    Seq(
+      exe_br_flg -> exe_br_target,
+      exe_jmp_flg -> exe_alu_out,
+      (if_inst === ECALL) -> csr_regfile(0x305)
+    )
+  )
+  if_reg_pc := if_pc_next
+
+  id_reg_pc := if_reg_pc
+  id_reg_inst := if_inst
 
   val id_rs1_addr = id_reg_inst(19, 15)
   val id_rs2_addr = id_reg_inst(24, 20)
   val id_wb_addr = id_reg_inst(11, 7)
-  val id_rs1_data =
-    Mux(
-      (id_rs1_addr =/= 0.U(WORD_LEN.U)),
-      regfile(id_rs1_addr),
-      0.U(WORD_LEN.W)
-    )
-  val rs2_data =
-    Mux(
-      (id_rs2_addr =/= 0.U(WORD_LEN.U)),
-      regfile(id_rs2_addr),
-      0.U(WORD_LEN.W)
-    )
+
+  val id_rs1_data = Mux(
+    (id_rs1_addr =/= 0.U(WORD_LEN.U)),
+    regfile(id_rs1_addr),
+    0.U(WORD_LEN.W)
+  )
+  val id_rs2_data = Mux(
+    (id_rs2_addr =/= 0.U(WORD_LEN.U)),
+    regfile(id_rs2_addr),
+    0.U(WORD_LEN.W)
+  )
 
   val id_imm_i = id_reg_inst(31, 20)
   val id_imm_i_sext = Cat(Fill(20, id_imm_i(11)), id_imm_i)
@@ -209,6 +181,25 @@ class Core extends Module {
       (id_op2_sel === OP2_IMU) -> id_imm_u_shifted
     )
   )
+  val id_csr_addr =
+    Mux(id_csr_cmd === CSR_E, 0x342.U(CSR_ADDR_LEN.W), id_reg_inst(31, 20))
+
+  exe_reg_pc := id_reg_pc
+  exe_reg_op1_data := id_op1_data
+  exe_reg_op2_data := id_op2_data
+  exe_reg_rs2_data := id_rs2_data
+  exe_reg_wb_addr := id_wb_addr
+  exe_reg_rf_wen := id_rf_wen
+  exe_reg_exe_fun := id_exe_fun
+  exe_reg_wb_sel := id_wb_sel
+  exe_reg_imm_i_sext := id_imm_i_sext
+  exe_reg_imm_s_sext := id_imm_s_sext
+  exe_reg_imm_b_sext := id_imm_b_sext
+  exe_reg_imm_u_shifted := id_imm_u_shifted
+  exe_reg_imm_z_uext := id_imm_z_uext
+  exe_reg_csr_addr := id_csr_addr
+  exe_reg_csr_cmd := id_csr_cmd
+  exe_reg_mem_wen := id_mem_wen
 
   exe_alu_out := MuxCase(
     0.U(WORD_LEN.W),
@@ -237,7 +228,6 @@ class Core extends Module {
       (exe_reg_exe_fun === ALU_COPY1) -> exe_reg_op1_data
     )
   )
-  exe_br_target := exe_reg_pc + exe_reg_imm_b_sext
   exe_br_flg := MuxCase(
     false.B,
     Seq(
@@ -251,14 +241,25 @@ class Core extends Module {
       (exe_reg_exe_fun === BR_BGEU) -> !(exe_reg_op1_data < exe_reg_op2_data)
     )
   )
+  exe_br_target := exe_reg_pc + exe_reg_imm_b_sext
   exe_jmp_flg := (exe_reg_wb_sel === WB_PC)
+
+  mem_reg_pc := exe_reg_pc
+  mem_reg_op1_data := exe_reg_op1_data
+  mem_reg_rs2_data := exe_reg_rs2_data
+  mem_reg_wb_addr := exe_reg_wb_addr
+  mem_reg_alu_out := exe_alu_out
+  mem_reg_rf_wen := exe_reg_rf_wen
+  mem_reg_wb_sel := exe_reg_wb_sel
+  mem_reg_csr_addr := exe_reg_csr_addr
+  mem_reg_csr_cmd := exe_reg_csr_cmd
+  mem_reg_imm_z_uext := exe_reg_imm_z_uext
+  mem_reg_mem_wen := exe_reg_mem_wen
 
   io.dmem.addr := mem_reg_alu_out
   io.dmem.wen := mem_reg_mem_wen
   io.dmem.wdata := mem_reg_rs2_data
 
-  val id_csr_addr =
-    Mux(id_csr_cmd === CSR_E, 0x342.U(CSR_ADDR_LEN.W), id_reg_inst(31, 20))
   val csr_rdata = csr_regfile(mem_reg_csr_addr)
   val csr_wdata = MuxCase(
     0.U(WORD_LEN.W),
@@ -274,7 +275,7 @@ class Core extends Module {
     csr_regfile(mem_reg_csr_addr) := csr_wdata
   }
 
-  val mem_reg_wb_data = MuxCase(
+  val mem_wb_data = MuxCase(
     mem_reg_alu_out,
     Seq(
       (mem_reg_wb_sel === WB_MEM) -> io.dmem.rdata,
@@ -283,25 +284,24 @@ class Core extends Module {
     )
   )
 
+  wb_reg_wb_addr := mem_reg_wb_addr
+  wb_reg_rf_wen := mem_reg_rf_wen
+  wb_reg_wb_data := mem_wb_data
+
   when(wb_reg_rf_wen === REN_S) {
     regfile(wb_reg_wb_addr) := wb_reg_wb_data
   }
   io.gp := regfile(3)
-  io.exit := (inst === UNIMP)
-  printf(p"if_reg_pc    : 0x${Hexadecimal(if_reg_pc)}\n")
-  printf(p"id_reg_pc    : 0x${Hexadecimal(id_reg_pc)}\n")
-  printf(p"id_reg_inst    : 0x${Hexadecimal(id_reg_inst)}\n")
-  printf(p"id_inst    : 0x${Hexadecimal(id_inst)}\n")
-  printf(p"id_rs1_data    : 0x${Hexadecimal(id_rs1_data)}\n")
-  printf(p"id_rs2_data    : 0x${Hexadecimal(id_rs2_data)}\n")
-  printf(p"exe_reg_pc    : 0x${Hexadecimal(exe_reg_pc)}\n")
-  printf(p"exe_reg_op1_data    : 0x${Hexadecimal(exe_reg_op1_data)}\n")
-  printf(p"exe_reg_op2_data    : 0x${Hexadecimal(exe_reg_op2_data)}\n")
-  printf(p"exe_alu_out    : 0x${Hexadecimal(exe_alu_out)}\n")
-  printf(p"mem_reg_pc    : 0x${Hexadecimal(mem_reg_pc)}\n")
-  printf(p"mem_wb_data    : 0x${Hexadecimal(mem_wb_data)}\n")
-  printf(p"wb_reg_wb_data    : 0x${Hexadecimal(wb_reg_wb_data)}\n")
-
+  io.exit := (id_reg_inst === UNIMP)
+  printf(p"if_reg_pc        : 0x${Hexadecimal(if_reg_pc)}\n")
+  printf(p"id_reg_pc        : 0x${Hexadecimal(id_reg_pc)}\n")
+  printf(p"id_reg_inst      : 0x${Hexadecimal(id_reg_inst)}\n")
+  printf(p"exe_reg_pc       : 0x${Hexadecimal(exe_reg_pc)}\n")
+  printf(p"exe_reg_op1_data : 0x${Hexadecimal(exe_reg_op1_data)}\n")
+  printf(p"exe_reg_op2_data : 0x${Hexadecimal(exe_reg_op2_data)}\n")
+  printf(p"exe_alu_out      : 0x${Hexadecimal(exe_alu_out)}\n")
+  printf(p"mem_reg_pc       : 0x${Hexadecimal(mem_reg_pc)}\n")
+  printf(p"mem_wb_data      : 0x${Hexadecimal(mem_wb_data)}\n")
   printf("---------\n")
 
 }

@@ -24,7 +24,7 @@ class Memory extends Module {
   // メモリの確保・初期化
   val mem = Mem(16384, UInt(8.W))
   // メモリの読み込み
-  loadMemoryFromFile(mem, "src/hex/sw.hex")
+  loadMemoryFromFile(mem, "src/hex/ctest.hex")
 
   // 命令用のメモリアクセス
   // アドレスに対応するデータを読み書き

@@ -47,13 +47,15 @@ class Core extends Module {
   val mem_reg_wb_addr = RegInit(0.U(ADDR_LEN.W))
   val mem_reg_op1_data = RegInit(0.U(WORD_LEN.W))
   val mem_reg_rs2_data = RegInit(0.U(WORD_LEN.W))
-  val mem_reg_mem_wen = RegInit(0.U(WORD_LEN.W))
+  val mem_reg_mem_wen = RegInit(0.U(MEN_LEN.W))
   val mem_reg_rf_wen = RegInit(0.U(REN_LEN.W))
   val mem_reg_wb_sel = RegInit(0.U(WB_SEL_LEN.W))
   val mem_reg_csr_addr = RegInit(0.U(CSR_ADDR_LEN.W))
   val mem_reg_csr_cmd = RegInit(0.U(CSR_LEN.W))
   val mem_reg_imm_z_uext = RegInit(0.U(WORD_LEN.W))
   val mem_reg_alu_out = RegInit(0.U(WORD_LEN.W))
+
+  val mem_wb_data = Wire(UInt(WORD_LEN.W))
 
   // MEM/WB stage
   val wb_reg_wb_addr = RegInit(0.U(ADDR_LEN.W))
@@ -68,6 +70,9 @@ class Core extends Module {
 
   // program counter plus4 分岐命令のときに使われる
   val if_pc_plus4 = if_pc_reg + 4.U(WORD_LEN.W)
+
+  // ストールの実装
+  val stall_flg = Wire(Bool())
 
   // 分岐先のカウンタ
   val exe_br_target = Wire(UInt(WORD_LEN.W))
@@ -84,25 +89,35 @@ class Core extends Module {
   // br_flgがtrueのときは分岐先のカウンタ
   // jmp_flgがtrueのときはALUの出力
   // ecallのときはcsr_regfile(0x305)の値
+  // stall_flgがtrueのときは今のprogram counter
   // どれにも該当しない場合は今のprogram counter+4
   val if_pc_next = MuxCase(
     if_pc_plus4,
     Seq(
       exe_br_flg -> exe_br_target,
       exe_jmp_flg -> exe_alu_out,
-      (if_inst === ECALL) -> csr_regfile(0x305)
+      stall_flg -> if_pc_reg // stall
     )
   )
+
   // program counterの更新
   if_pc_reg := if_pc_next
 
-  id_pc_reg := if_pc_reg
+  id_pc_reg := Mux(stall_flg, id_pc_reg, if_pc_reg)
 
   // exeステージに来たとき、分岐命令なら、命令フェッチをバブル化させる
-  id_reg_inst := Mux((exe_br_flg || exe_jmp_flg), BUBBLE, if_inst)
+  id_reg_inst := MuxCase(
+    if_inst,
+    Seq(
+      // ジャンプ命令とストールが同時発生したときはジャンプ命令を優先する
+      (exe_br_flg || exe_jmp_flg) -> BUBBLE,
+      stall_flg -> id_reg_inst
+    )
+  )
 
   // ifからidに来るとき、分岐命令なら、デコード処理をバブル化させる
-  val id_inst = Mux((exe_br_flg || exe_jmp_flg), BUBBLE, id_reg_inst)
+  val id_inst =
+    Mux((exe_br_flg || exe_jmp_flg || stall_flg), BUBBLE, id_reg_inst)
 
   // **重要**
   // 命令のデコード
@@ -110,24 +125,43 @@ class Core extends Module {
   val id_rs1_addr = id_inst(19, 15)
   val id_rs2_addr = id_inst(24, 20)
   val id_wb_addr = id_inst(11, 7)
-  //
+
+  val id_rs1_addr_b = id_reg_inst(19, 15)
+  val id_rs2_addr_b = id_reg_inst(24, 20)
+  val id_rs1_data_hazard =
+    (exe_reg_rf_wen === REN_S) && (id_rs1_addr_b =/= 0.U) && (id_rs1_addr_b === exe_reg_wb_addr)
+
+  val id_rs2_data_hazard =
+    (exe_reg_rf_wen === REN_S) && (id_rs2_addr_b =/= 0.U) && (id_rs2_addr_b === exe_reg_wb_addr)
+
+  stall_flg := (id_rs1_data_hazard || id_rs2_data_hazard)
 
   // レジスタからデータを取り出す
   // rs1_addrが0ではないとき、つまりアドレスが指定されているときはそのアドレスのデータを取り出す
   // 0のとき、つまりアドレスが指定されていないときは0として扱う
-  val id_rs1_data =
-    Mux(
-      (id_rs1_addr =/= 0.U(WORD_LEN.U)),
-      regfile(id_rs1_addr),
-      0.U(WORD_LEN.W)
+  val id_rs1_data = MuxCase(
+    regfile(id_rs1_addr),
+    Seq(
+      // rs1_addrが0のときは0
+      (id_rs1_addr === 0.U) -> 0.U(WORD_LEN.W),
+      // メモリからのデータを取り出す
+      ((id_rs1_addr === mem_reg_wb_addr) && (mem_reg_rf_wen === REN_S)) -> mem_wb_data,
+      // レジスタファイルからのデータを取り出す
+      ((id_rs1_addr === wb_reg_wb_addr) && (wb_reg_rf_wen === REN_S)) -> wb_reg_wb_data
     )
+  )
   // rs2_addrも同様
-  val id_rs2_data =
-    Mux(
-      (id_rs2_addr =/= 0.U(WORD_LEN.U)),
-      regfile(id_rs2_addr),
-      0.U(WORD_LEN.W)
+  val id_rs2_data = MuxCase(
+    regfile(id_rs2_addr),
+    Seq(
+      // rs2_addrが0のときは0
+      (id_rs2_addr === 0.U) -> 0.U(WORD_LEN.W),
+      // メモリからのデータを取り出す
+      ((id_rs2_addr === mem_reg_wb_addr) && (mem_reg_rf_wen === REN_S)) -> mem_wb_data,
+      // レジスタファイルからのデータを取り出す
+      ((id_rs2_addr === wb_reg_wb_addr) && (wb_reg_rf_wen === REN_S)) -> wb_reg_wb_data
     )
+  )
 
   // 命令のデコード
   // 即値
@@ -189,7 +223,7 @@ class Core extends Module {
   // instと各bitPatを比較して、一致するものがあればそれを返す
   // なければデフォルトのものを返す
   val csignals = ListLookup(
-    id_reg_inst,
+    id_inst,
     // どの命令にも一致しないときは全ての信号をXにする
     List(ALU_X, OP1_RS1, OP2_RS2, MEN_X, REN_X, WB_X, CSR_X),
     Array(
@@ -218,8 +252,7 @@ class Core extends Module {
 
       SW -> List(ALU_ADD, OP1_RS1, OP2_IMS, MEN_S, REN_X, WB_X, CSR_X),
 
-      // 加減算・論理演算命令
-      // R形式
+      // 加減算・論理演算命令 R形式
       // OP1: RS1 (rs1_data)
       // OP2: RS2 (rs2_data)
       // DMEMとやり取りをするか: X(しない)
@@ -497,10 +530,7 @@ class Core extends Module {
   // CSRの実装
   // ECALL命令のときは0x305の値を返す
   val id_csr_addr =
-    Mux(id_csr_cmd === CSR_E, 0x342.U(CSR_ADDR_LEN.W), id_reg_inst(31, 20))
-
-  // io.exitがtrueのときプログラムを終了する
-  io.exit := (id_reg_inst === UNIMP)
+    Mux(id_csr_cmd === CSR_E, 0x342.U(CSR_ADDR_LEN.W), id_inst(31, 20))
 
   // EX stage
   exe_reg_pc := id_pc_reg
@@ -598,12 +628,17 @@ class Core extends Module {
   mem_reg_op1_data := exe_reg_op1_data
   mem_reg_rs2_data := exe_reg_rs2_data
   mem_reg_wb_addr := exe_reg_wb_addr
+  mem_reg_alu_out := exe_alu_out
   mem_reg_rf_wen := exe_reg_rf_wen
   mem_reg_wb_sel := exe_reg_wb_sel
   mem_reg_csr_addr := exe_reg_csr_addr
   mem_reg_csr_cmd := exe_reg_csr_cmd
   mem_reg_imm_z_uext := exe_reg_imm_z_uext
   mem_reg_mem_wen := exe_reg_mem_wen
+
+  // io.exitがtrueのときプログラムを終了する
+  // io.exit := (mem_reg_pc === 0x44.U(WORD_LEN.W))
+  io.exit := (id_reg_inst === UNIMP)
 
   // 以降の演算でaluの結果を使用したいので、alu_outをdmemに渡す
   io.dmem.addr := mem_reg_alu_out
@@ -630,7 +665,8 @@ class Core extends Module {
   }
 
   // write backの実装
-  val mem_wb_data = MuxCase(
+
+  mem_wb_data := MuxCase(
     // デフォルトはalu_outが出力される
     mem_reg_alu_out,
     Seq(
@@ -642,6 +678,7 @@ class Core extends Module {
       (mem_reg_wb_sel === WB_CSR) -> csr_rdata
     )
   )
+
   // WBレジスタに書き込み
   wb_reg_wb_addr := mem_reg_wb_addr
   wb_reg_rf_wen := mem_reg_rf_wen
@@ -685,7 +722,8 @@ class Core extends Module {
   printf("op1_data= %x \n", id_op1_data)
   printf("op2_data= %x \n", id_op2_data)
   printf("csr_addr= %x \n", id_csr_addr)
-  printf("io.gp= %x %x %x \n", regfile(3), regfile(2), regfile(1))
+  printf("stall_flg= %x \n", stall_flg)
+  printf("io.gp= %x \n", regfile(3))
 
   printf("---------\n")
 

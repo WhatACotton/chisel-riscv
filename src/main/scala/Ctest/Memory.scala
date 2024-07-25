@@ -21,25 +21,36 @@ class Memory extends Module {
     val imem = new ImemPortIo()
     val dmem = new DmemPortIo()
   })
+  // メモリの確保・初期化
   val mem = Mem(16384, UInt(8.W))
+  // メモリの読み込み
   loadMemoryFromFile(mem, "src/hex/ctest.hex")
 
+  // 命令用のメモリアクセス
+  // アドレスに対応するデータを読み書き
+  // 今のアドレスから4バイト分のデータを読み込む
   io.imem.inst := Cat(
     mem(io.imem.addr + 3.U(WORD_LEN.W)),
     mem(io.imem.addr + 2.U(WORD_LEN.W)),
     mem(io.imem.addr + 1.U(WORD_LEN.W)),
     mem(io.imem.addr)
   )
+
+  // データ用のメモリアクセス
+  // 指定されたのアドレスから4バイト分のデータを読み込む
   io.dmem.rdata := Cat(
     mem(io.dmem.addr + 3.U(WORD_LEN.W)),
     mem(io.dmem.addr + 2.U(WORD_LEN.W)),
     mem(io.dmem.addr + 1.U(WORD_LEN.W)),
     mem(io.dmem.addr)
   )
+
+  // データの書き込み
+  // データを4バイト分書き込む
   when(io.dmem.wen) {
-    mem(io.dmem.addr) := io.dmem.wdata(7, 0)
-    mem(io.dmem.addr + 1.U(WORD_LEN.W)) := io.dmem.wdata(15, 8)
-    mem(io.dmem.addr + 2.U(WORD_LEN.W)) := io.dmem.wdata(23, 16)
     mem(io.dmem.addr + 3.U(WORD_LEN.W)) := io.dmem.wdata(31, 24)
+    mem(io.dmem.addr + 2.U(WORD_LEN.W)) := io.dmem.wdata(23, 16)
+    mem(io.dmem.addr + 1.U(WORD_LEN.W)) := io.dmem.wdata(15, 8)
+    mem(io.dmem.addr) := io.dmem.wdata(7, 0)
   }
 }

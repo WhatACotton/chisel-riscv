@@ -1,4 +1,4 @@
-package pipeline
+package camp
 
 import chisel3._
 import common.Consts._

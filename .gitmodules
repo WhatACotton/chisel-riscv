@@ -1,3 +1,12 @@
 [submodule "external/riscv-tests"]
 	path = external/riscv-tests
 	url = https://github.com/riscv/riscv-tests
+[submodule "external/-f"]
+	path = external/-f
+	url = https://github.com/ciniml/riscv-tests.git
+[submodule "external/--force"]
+	path = external/--force
+	url = https://github.com/ciniml/riscv-tests.git
+[submodule "external/riscv-test"]
+	path = external/riscv-test
+	url = https://github.com/ciniml/riscv-tests.git

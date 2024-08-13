@@ -7,13 +7,18 @@ class Top extends Module {
   val io = IO(new Bundle {
     // プログラムの終了フラグ
     val exit = Output(Bool())
-    // デバッグ用
-    val gp = Output(UInt(WORD_LEN.W))
+    val debug_pc = Output(UInt(WORD_LEN.W))
+    val success = Output(Bool())
+
   })
+  val base_address = "x00000000".U(WORD_LEN.W)
   // モジュールのインスタンス化
-  val core = Module(new Core())
+  val core = Module(new Core(startAddress = base_address))
+
   // メモリのインスタンス化
-  val memory = Module(new Memory())
+  val memory = Module(
+    new Memory(Some(i => f"../sw/bootrom_${i}.hex"), base_address, 8192)
+  )
 
   // メモリの接続
   core.io.imem <> memory.io.imem
@@ -21,6 +26,6 @@ class Top extends Module {
 
   // 終了フラグ
   io.exit := core.io.exit
-  // デバッグ用
-  io.gp := core.io.gp
+  io.debug_pc := core.io.debug_pc
+
 }

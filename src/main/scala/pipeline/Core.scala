@@ -578,20 +578,20 @@ class Core extends Module {
       (exe_reg_exe_fun === ALU_SRL) -> (exe_reg_op1_data >> exe_reg_op2_data(
         4,
         0
-      )).asUInt(),
+      )).asUInt,
       // SRA 算術右シフト
       // op2_dataの下位5bitを取り出してシフトする
       // .asSIntを使うこでビット幅をシフト量分だけ拡張する
-      (exe_reg_exe_fun === ALU_SRA) -> (exe_reg_op1_data
-        .asSInt() >> exe_reg_op2_data(4, 0)).asUInt(),
+      (exe_reg_exe_fun === ALU_SRA) -> (exe_reg_op1_data.asSInt >> exe_reg_op2_data(
+        4,
+        0
+      )).asUInt,
       // SLT 符号付き比較
       // op1_dataがop2_dataより小さいとき1、そうでないとき0
       // asUIntを使うことでBoolをUIntに変換する
-      (exe_reg_exe_fun === ALU_SLT) -> (exe_reg_op1_data
-        .asSInt() < exe_reg_op2_data.asSInt()).asUInt(),
+      (exe_reg_exe_fun === ALU_SLT) -> (exe_reg_op1_data.asSInt < exe_reg_op2_data.asSInt).asUInt,
       // SLTU 符号なし比較
-      (exe_reg_exe_fun === ALU_SLTU) -> (exe_reg_op1_data < exe_reg_op2_data)
-        .asUInt(),
+      (exe_reg_exe_fun === ALU_SLTU) -> (exe_reg_op1_data < exe_reg_op2_data).asUInt,
       // JALR ジャンプ命令
       // ~1.U(WORD_LEN.W) これは下位ビットが0でその他が1のビット列を作る
       // これを使ってANDを取ると下位ビットが必ず0になるのでジャンプ先のアドレスが確実に命令の先頭になる（意図的に即値に飛ばすこともできるけど...）
@@ -612,10 +612,8 @@ class Core extends Module {
     Seq(
       (exe_reg_exe_fun === BR_BEQ) -> (exe_reg_op1_data === exe_reg_op2_data),
       (exe_reg_exe_fun === BR_BNE) -> !(exe_reg_op1_data === exe_reg_op2_data),
-      (exe_reg_exe_fun === BR_BLT) -> (exe_reg_op1_data
-        .asSInt() < exe_reg_op2_data.asSInt()),
-      (exe_reg_exe_fun === BR_BGE) -> !(exe_reg_op1_data
-        .asSInt() < exe_reg_op2_data.asSInt()),
+      (exe_reg_exe_fun === BR_BLT) -> (exe_reg_op1_data.asSInt < exe_reg_op2_data.asSInt),
+      (exe_reg_exe_fun === BR_BGE) -> !(exe_reg_op1_data.asSInt < exe_reg_op2_data.asSInt),
       (exe_reg_exe_fun === BR_BLTU) -> (exe_reg_op1_data < exe_reg_op2_data),
       (exe_reg_exe_fun === BR_BGEU) -> !(exe_reg_op1_data < exe_reg_op2_data)
     )

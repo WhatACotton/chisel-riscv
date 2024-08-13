@@ -452,17 +452,17 @@ class Core extends Module {
       // SRL 論理右シフト
       // op2_dataの下位5bitを取り出してシフトする
       // .asUIntを使うことでビット幅をシフト量分だけ拡張する
-      (exe_fun === ALU_SRL) -> (op1_data >> op2_data(4, 0)).asUInt(),
+      (exe_fun === ALU_SRL) -> (op1_data >> op2_data(4, 0)).asUInt,
       // SRA 算術右シフト
       // op2_dataの下位5bitを取り出してシフトする
       // .asSIntを使うこでビット幅をシフト量分だけ拡張する
-      (exe_fun === ALU_SRA) -> (op1_data.asSInt() >> op2_data(4, 0)).asUInt(),
+      (exe_fun === ALU_SRA) -> (op1_data.asSInt >> op2_data(4, 0)).asUInt,
       // SLT 符号付き比較
       // op1_dataがop2_dataより小さいとき1、そうでないとき0
       // asUIntを使うことでBoolをUIntに変換する
-      (exe_fun === ALU_SLT) -> (op1_data.asSInt() < op2_data.asSInt()).asUInt(),
+      (exe_fun === ALU_SLT) -> (op1_data.asSInt < op2_data.asSInt).asUInt,
       // SLTU 符号なし比較
-      (exe_fun === ALU_SLTU) -> (op1_data < op2_data).asUInt(),
+      (exe_fun === ALU_SLTU) -> (op1_data < op2_data).asUInt,
       // JALR ジャンプ命令
       // ~1.U(WORD_LEN.W) これは下位ビットが0でその他が1のビット列を作る
       // これを使ってANDを取ると下位ビットが必ず0になるのでジャンプ先のアドレスが確実に命令の先頭になる（意図的に即値に飛ばすこともできるけど...）
@@ -482,8 +482,8 @@ class Core extends Module {
     Seq(
       (exe_fun === BR_BEQ) -> (op1_data === op2_data),
       (exe_fun === BR_BNE) -> !(op1_data === op2_data),
-      (exe_fun === BR_BLT) -> (op1_data.asSInt() < op2_data.asSInt()),
-      (exe_fun === BR_BGE) -> !(op1_data.asSInt() < op2_data.asSInt()),
+      (exe_fun === BR_BLT) -> (op1_data.asSInt < op2_data.asSInt),
+      (exe_fun === BR_BGE) -> !(op1_data.asSInt < op2_data.asSInt),
       (exe_fun === BR_BLTU) -> (op1_data < op2_data),
       (exe_fun === BR_BGEU) -> !(op1_data < op2_data)
     )

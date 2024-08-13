@@ -216,13 +216,13 @@ class Core extends Module {
       (exe_reg_exe_fun === ALU_SRL) -> (exe_reg_op1_data >> exe_reg_op2_data(
         4,
         0
-      )).asUInt(),
-      (exe_reg_exe_fun === ALU_SRA) -> (exe_reg_op1_data
-        .asSInt() >> exe_reg_op2_data(4, 0)).asUInt(),
-      (exe_reg_exe_fun === ALU_SLT) -> (exe_reg_op1_data
-        .asSInt() < exe_reg_op2_data.asSInt()).asUInt(),
-      (exe_reg_exe_fun === ALU_SLTU) -> (exe_reg_op1_data < exe_reg_op2_data)
-        .asUInt(),
+      )).asUInt,
+      (exe_reg_exe_fun === ALU_SRA) -> (exe_reg_op1_data.asSInt >> exe_reg_op2_data(
+        4,
+        0
+      )).asUInt,
+      (exe_reg_exe_fun === ALU_SLT) -> (exe_reg_op1_data.asSInt < exe_reg_op2_data.asSInt).asUInt,
+      (exe_reg_exe_fun === ALU_SLTU) -> (exe_reg_op1_data < exe_reg_op2_data).asUInt,
       (exe_reg_exe_fun === ALU_JALR) -> ((exe_reg_op1_data + exe_reg_op2_data) & ~1
         .U(WORD_LEN.W)),
       (exe_reg_exe_fun === ALU_COPY1) -> exe_reg_op1_data
@@ -233,10 +233,8 @@ class Core extends Module {
     Seq(
       (exe_reg_exe_fun === BR_BEQ) -> (exe_reg_op1_data === exe_reg_op2_data),
       (exe_reg_exe_fun === BR_BNE) -> !(exe_reg_op1_data === exe_reg_op2_data),
-      (exe_reg_exe_fun === BR_BLT) -> (exe_reg_op1_data
-        .asSInt() < exe_reg_op2_data.asSInt()),
-      (exe_reg_exe_fun === BR_BGE) -> !(exe_reg_op1_data
-        .asSInt() < exe_reg_op2_data.asSInt()),
+      (exe_reg_exe_fun === BR_BLT) -> (exe_reg_op1_data.asSInt < exe_reg_op2_data.asSInt),
+      (exe_reg_exe_fun === BR_BGE) -> !(exe_reg_op1_data.asSInt < exe_reg_op2_data.asSInt),
       (exe_reg_exe_fun === BR_BLTU) -> (exe_reg_op1_data < exe_reg_op2_data),
       (exe_reg_exe_fun === BR_BGEU) -> !(exe_reg_op1_data < exe_reg_op2_data)
     )

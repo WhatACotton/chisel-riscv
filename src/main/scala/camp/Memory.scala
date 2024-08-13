@@ -30,27 +30,21 @@ class Memory extends Module {
   // アドレスに対応するデータを読み書き
   // 今のアドレスから4バイト分のデータを読み込む
   io.imem.inst := Cat(
-    mem(io.imem.addr + 3.U(WORD_LEN.W)),
-    mem(io.imem.addr + 2.U(WORD_LEN.W)),
-    mem(io.imem.addr + 1.U(WORD_LEN.W)),
-    mem(io.imem.addr)
+    mem.read(io.imem.addr >> 2).reverse
   )
 
   // データ用のメモリアクセス
   // 指定されたのアドレスから4バイト分のデータを読み込む
   io.dmem.rdata := Cat(
-    mem(io.dmem.addr + 3.U(WORD_LEN.W)),
-    mem(io.dmem.addr + 2.U(WORD_LEN.W)),
-    mem(io.dmem.addr + 1.U(WORD_LEN.W)),
-    mem(io.dmem.addr)
+    mem.read(io.dmem.addr >> 2).reverse
   )
 
   // データの書き込み
   // データを4バイト分書き込む
   when(io.dmem.wen) {
-    mem(io.dmem.addr + 3.U(WORD_LEN.W)) := io.dmem.wdata(31, 24)
-    mem(io.dmem.addr + 2.U(WORD_LEN.W)) := io.dmem.wdata(23, 16)
-    mem(io.dmem.addr + 1.U(WORD_LEN.W)) := io.dmem.wdata(15, 8)
-    mem(io.dmem.addr) := io.dmem.wdata(7, 0)
+    mem.write(
+      io.dmem.addr >> 2,
+      VecInit((0 to 3).map(i => io.dmem.wdata(8 * (i + 1) - 1, 8 * i)).reverse)
+    )
   }
 }

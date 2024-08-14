@@ -1,17 +1,14 @@
 package fpga
 
-// import chisel3._
-// import chisel3.stage.ChiselStage
-// import ctest.Top
+import chisel3._
+import _root_.circt.stage.ChiselStage
 
-// object Elaborate_ComProcCpuBoard extends App {
-//   (new ChiselStage).emitVerilog(
-//     new Top,
-//     Array(
-//       "-o",
-//       "riscv.v",
-//       "--target-dir",
-//       "rtl/comproc_cpu_board"
-//     )
-//   )
-// }
+import camp.Top
+
+object Elaborate_ComProcCpuBoard extends App {
+  ChiselStage.emitSystemVerilogFile(
+    new Top,
+    Array("--target-dir", "rtl/comproc_cpu_board"),
+    Array("--lowering-options=disallowLocalVariables")
+  )
+}

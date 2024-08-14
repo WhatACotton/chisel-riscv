@@ -27,5 +27,6 @@ class Top extends Module {
   // 終了フラグ
   io.exit := core.io.exit
   io.debug_pc := core.io.debug_pc
+  io.success := core.io.success
 
 }

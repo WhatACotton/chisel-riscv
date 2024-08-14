@@ -2,7 +2,7 @@ package camp
 import chisel3._
 import chisel3.util._
 
-class UartConnector extends Module {
+class UartTxConnector extends Module {
   val io = IO(new Bundle {
     val mem = new DmemPortIo
     val data = Output(UInt(8.W))

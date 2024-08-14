@@ -92,6 +92,7 @@ assign led = ~io_gpio_out[5:0]; //~{3'b000, reset, io_success, io_exit};
 Top core(
 .clock(clock && !cpu_halt),
 .io_uart_tx(uart_tx), // UART送信出力ピン
+.io_uart_rx(uart_rx), // UART受信入力ピン
 .*
 );
 

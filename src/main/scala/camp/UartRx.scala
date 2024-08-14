@@ -2,6 +2,34 @@ package camp
 import chisel3._
 import chisel3.util._
 
+class UartRxConnector extends Module {
+  val io = IO(new Bundle {
+    val mem = new DmemPortIo
+    val data = Input(UInt(32.W))
+    val ready = Output(Bool())
+    val valid = Input(Bool())
+  })
+  val received = RegInit(false.B)
+  val data = RegInit(0.U(8.W))
+  io.mem.rvalid := received
+
+  io.ready := !received
+  when(!received && io.valid) {
+    data := io.data(7, 0)
+    // receivedがtrueになると、io.readyがfalseになる
+    received := true.B
+  }
+  io.mem.rdata := MuxLookup(io.mem.addr(1, 0), received.asUInt)(
+    Seq(0.U -> data)
+  )
+
+  when(io.mem.ren && received) {
+    io.mem.rdata := data
+    received := false.B
+  }
+
+}
+
 class UartRx(numberOfBits: Int, baudDivider: Int, rxSyncStages: Int)
     extends Module {
   val io = IO(new Bundle {

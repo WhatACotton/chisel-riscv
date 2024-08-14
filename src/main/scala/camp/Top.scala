@@ -8,21 +8,53 @@ class Top extends Module {
     // プログラムの終了フラグ
     val exit = Output(Bool())
     val debug_pc = Output(UInt(WORD_LEN.W))
+    val gpio_out = Output(UInt(32.W))
     val success = Output(Bool())
-
+    val uart_tx = Output(Bool())
   })
-  val base_address = "x00000000".U(WORD_LEN.W)
-  // モジュールのインスタンス化
-  val core = Module(new Core(startAddress = base_address))
+  val baseAddress = BigInt("00000000", 16)
+  val memSize = 8192
+  val core = Module(new Core(startAddress = baseAddress.U(WORD_LEN.W)))
+  val decoder = Module(
+    new DMemDecoder(
+      Seq(
+        (BigInt(0x00000000L), BigInt(memSize)), // メモリ
+        (BigInt(0xa0000000L), BigInt(64)) // GPIO
+        // (BigInt(0xb0000000L), BigInt(64)) // UART
+      )
+    )
+  )
+  val gpio = Module(new Gpio)
+  val uartTx = Module(new UartTx(27000000, 115200))
+  val uartRx = Module(new UartRx(27000000, 115200, 3))
+  // val uartConnector = Module(new UartConnector)
 
-  // メモリのインスタンス化
+  // // モジュールのインスタンス化
+
+  // // メモリのインスタンス化
   val memory = Module(
-    new Memory(Some(i => f"../sw/bootrom_${i}.hex"), base_address, 8192)
+    new Memory(
+      Some(i => f"../sw/bootrom_${i}.hex"),
+      baseAddress.U(WORD_LEN.W),
+      memSize
+    )
   )
 
   // メモリの接続
   core.io.imem <> memory.io.imem
-  core.io.dmem <> memory.io.dmem
+  core.io.dmem <> decoder.io.initiator // CPUにデコーダを接続
+  decoder.io.targets(0) <> memory.io.dmem // 0番ポートにメモリを接続
+  decoder.io.targets(1) <> gpio.io.mem // 1番ポートにGPIOを接続
+  // decoder.io.targets(2) <> uartConnector.io.mem // 2番ポートにUARTを接続
+  // uartConnector.io.data <> uartTx.io.data
+  // uartConnector.io.ready <> uartTx.io.ready
+  // uartConnector.io.valid <> uartTx.io.valid
+  uartTx.io.data := uartRx.io.out.bits
+  uartTx.io.valid := uartRx.io.out.valid
+  uartRx.io.out.ready := uartTx.io.ready
+
+  io.gpio_out := gpio.io.out // GPIOの出力を外部ポートに接続
+  io.uart_tx := uartTx.io.tx // UARTの出力を外部ポートに接続
 
   // 終了フラグ
   io.exit := core.io.exit

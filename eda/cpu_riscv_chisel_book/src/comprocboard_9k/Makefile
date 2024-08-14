@@ -17,6 +17,8 @@ testbench: $(SIM_SRCS) ../sw/bootrom.hex
 output.vcd: testbench
 	./testbench > /dev/null 2>&1 
 
+../sw/bootrom.hex:
+	cd ../sw && make
 
 view: output.vcd
 	gtkwave output.vcd&

@@ -799,40 +799,31 @@ module DMemDecoder(	// src/main/scala/camp/decoder.scala:7:7
   output        io_targets_1_wen,	// src/main/scala/camp/decoder.scala:8:14
   output [3:0]  io_targets_1_wstrb,	// src/main/scala/camp/decoder.scala:8:14
   output [31:0] io_targets_1_wdata,	// src/main/scala/camp/decoder.scala:8:14
-  input  [31:0] io_targets_2_rdata,	// src/main/scala/camp/decoder.scala:8:14
+  input         io_targets_2_rvalid,	// src/main/scala/camp/decoder.scala:8:14
   output        io_targets_2_wen,	// src/main/scala/camp/decoder.scala:8:14
-  output [31:0] io_targets_2_wdata,	// src/main/scala/camp/decoder.scala:8:14
-                io_targets_3_addr,	// src/main/scala/camp/decoder.scala:8:14
-  input  [31:0] io_targets_3_rdata,	// src/main/scala/camp/decoder.scala:8:14
-  output        io_targets_3_ren,	// src/main/scala/camp/decoder.scala:8:14
-  input         io_targets_3_rvalid	// src/main/scala/camp/decoder.scala:8:14
+  output [31:0] io_targets_2_wdata	// src/main/scala/camp/decoder.scala:8:14
 );
 
   wire _GEN = io_initiator_addr < 32'h2000;	// src/main/scala/camp/decoder.scala:36:57
   wire _GEN_0 = io_initiator_addr > 32'h9FFFFFFF & io_initiator_addr < 32'hA0000040;	// src/main/scala/camp/decoder.scala:36:{15,36,57}
   wire _GEN_1 = io_initiator_addr > 32'hAFFFFFFF & io_initiator_addr < 32'hB0000040;	// src/main/scala/camp/decoder.scala:36:{15,36,57}
-  wire _GEN_2 = io_initiator_addr > 32'hBFFFFFFF & io_initiator_addr < 32'hC0000040;	// src/main/scala/camp/decoder.scala:36:{15,36,57}
   assign io_initiator_rdata =
-    _GEN_2
-      ? io_targets_3_rdata
-      : _GEN_1
-          ? io_targets_2_rdata
-          : _GEN_0 ? io_targets_1_rdata : _GEN ? io_targets_0_rdata : 32'hDEADBEEF;	// src/main/scala/camp/decoder.scala:7:7, :14:26, :36:{36,57}, :37:7, :41:13
+    _GEN_1
+      ? 32'hDEADBEEF
+      : _GEN_0 ? io_targets_1_rdata : _GEN ? io_targets_0_rdata : 32'hDEADBEEF;	// src/main/scala/camp/decoder.scala:7:7, :8:14, :14:26, :36:{36,57}, :37:7, :41:13
   assign io_initiator_rvalid =
-    _GEN_2 ? io_targets_3_rvalid : _GEN_1 | _GEN_0 | ~_GEN | io_targets_0_rvalid;	// src/main/scala/camp/decoder.scala:7:7, :13:27, :36:{36,57}, :37:7, :40:14
+    _GEN_1 ? io_targets_2_rvalid : _GEN_0 | ~_GEN | io_targets_0_rvalid;	// src/main/scala/camp/decoder.scala:7:7, :13:27, :36:{36,57}, :37:7, :40:14
   assign io_targets_0_addr = _GEN ? io_initiator_addr : 32'h0;	// src/main/scala/camp/decoder.scala:7:7, :23:27, :36:57, :37:7, :38:12
   assign io_targets_0_ren = _GEN & io_initiator_ren;	// src/main/scala/camp/decoder.scala:7:7, :24:26, :36:57, :37:7, :39:11
   assign io_targets_0_wen = _GEN & io_initiator_wen;	// src/main/scala/camp/decoder.scala:7:7, :25:26, :36:57, :37:7, :42:11
   assign io_targets_0_wstrb = _GEN ? io_initiator_wstrb : 4'hF;	// src/main/scala/camp/decoder.scala:7:7, :27:28, :36:57, :37:7, :44:13
-  assign io_targets_0_wdata = _GEN ? io_initiator_wdata : 32'hDEADBEEF;	// src/main/scala/camp/decoder.scala:7:7, :14:26, :26:28, :36:57, :37:7, :43:13
+  assign io_targets_0_wdata = _GEN ? io_initiator_wdata : 32'hDEADBEEF;	// src/main/scala/camp/decoder.scala:7:7, :8:14, :26:28, :36:57, :37:7, :43:13
   assign io_targets_1_addr = _GEN_0 ? io_initiator_addr + 32'h60000000 : 32'h0;	// src/main/scala/camp/decoder.scala:7:7, :23:27, :36:36, :37:7, :38:{12,33}
   assign io_targets_1_wen = _GEN_0 & io_initiator_wen;	// src/main/scala/camp/decoder.scala:7:7, :25:26, :36:36, :37:7, :42:11
   assign io_targets_1_wstrb = _GEN_0 ? io_initiator_wstrb : 4'hF;	// src/main/scala/camp/decoder.scala:7:7, :27:28, :36:36, :37:7, :44:13
-  assign io_targets_1_wdata = _GEN_0 ? io_initiator_wdata : 32'hDEADBEEF;	// src/main/scala/camp/decoder.scala:7:7, :14:26, :26:28, :36:36, :37:7, :43:13
+  assign io_targets_1_wdata = _GEN_0 ? io_initiator_wdata : 32'hDEADBEEF;	// src/main/scala/camp/decoder.scala:7:7, :8:14, :26:28, :36:36, :37:7, :43:13
   assign io_targets_2_wen = _GEN_1 & io_initiator_wen;	// src/main/scala/camp/decoder.scala:7:7, :25:26, :36:36, :37:7, :42:11
-  assign io_targets_2_wdata = _GEN_1 ? io_initiator_wdata : 32'hDEADBEEF;	// src/main/scala/camp/decoder.scala:7:7, :14:26, :26:28, :36:36, :37:7, :43:13
-  assign io_targets_3_addr = _GEN_2 ? io_initiator_addr + 32'h40000000 : 32'h0;	// src/main/scala/camp/decoder.scala:7:7, :23:27, :36:36, :37:7, :38:{12,33}
-  assign io_targets_3_ren = _GEN_2 & io_initiator_ren;	// src/main/scala/camp/decoder.scala:7:7, :24:26, :36:36, :37:7, :39:11
+  assign io_targets_2_wdata = _GEN_1 ? io_initiator_wdata : 32'hDEADBEEF;	// src/main/scala/camp/decoder.scala:7:7, :8:14, :26:28, :36:36, :37:7, :43:13
 endmodule
 
 module Gpio(	// src/main/scala/camp/gpio.scala:7:7
@@ -880,284 +871,75 @@ module Gpio(	// src/main/scala/camp/gpio.scala:7:7
   assign io_out = out;	// src/main/scala/camp/gpio.scala:7:7, :13:20
 endmodule
 
-module UartTx(	// src/main/scala/camp/UartTx.scala:32:7
-  input        clock,	// src/main/scala/camp/UartTx.scala:32:7
-               reset,	// src/main/scala/camp/UartTx.scala:32:7
-  output       io_tx,	// src/main/scala/camp/UartTx.scala:33:14
-  input  [7:0] io_data,	// src/main/scala/camp/UartTx.scala:33:14
-  output       io_ready,	// src/main/scala/camp/UartTx.scala:33:14
-  input        io_valid	// src/main/scala/camp/UartTx.scala:33:14
+module LedMatrix(	// src/main/scala/camp/LEDmatrix.scala:46:7
+  input         clock,	// src/main/scala/camp/LEDmatrix.scala:46:7
+                reset,	// src/main/scala/camp/LEDmatrix.scala:46:7
+  output        io_mem_rvalid,	// src/main/scala/camp/LEDmatrix.scala:47:14
+  input         io_mem_wen,	// src/main/scala/camp/LEDmatrix.scala:47:14
+  input  [31:0] io_mem_wdata,	// src/main/scala/camp/LEDmatrix.scala:47:14
+  output [7:0]  io_anodes,	// src/main/scala/camp/LEDmatrix.scala:47:14
+                io_cathodes	// src/main/scala/camp/LEDmatrix.scala:47:14
 );
 
-  reg  [7:0] rateCounter;	// src/main/scala/camp/UartTx.scala:40:28
-  reg  [3:0] bitCounter;	// src/main/scala/camp/UartTx.scala:41:27
-  reg        bits_0;	// src/main/scala/camp/UartTx.scala:42:17
-  reg        bits_1;	// src/main/scala/camp/UartTx.scala:42:17
-  reg        bits_2;	// src/main/scala/camp/UartTx.scala:42:17
-  reg        bits_3;	// src/main/scala/camp/UartTx.scala:42:17
-  reg        bits_4;	// src/main/scala/camp/UartTx.scala:42:17
-  reg        bits_5;	// src/main/scala/camp/UartTx.scala:42:17
-  reg        bits_6;	// src/main/scala/camp/UartTx.scala:42:17
-  reg        bits_7;	// src/main/scala/camp/UartTx.scala:42:17
-  reg        bits_8;	// src/main/scala/camp/UartTx.scala:42:17
-  reg        bits_9;	// src/main/scala/camp/UartTx.scala:42:17
-  wire       ready = bitCounter == 4'h0;	// src/main/scala/camp/UartTx.scala:41:27, :43:23
-  wire       _GEN = io_valid & ready;	// src/main/scala/camp/UartTx.scala:43:23, :46:17
-  wire       _GEN_0 = rateCounter == 8'h0;	// src/main/scala/camp/UartTx.scala:40:28, :52:22
-  wire       _GEN_1 = (|bitCounter) & _GEN_0;	// src/main/scala/camp/UartTx.scala:41:27, :46:27, :51:{19,26}, :52:{22,31}, :53:37
-  always @(posedge clock) begin	// src/main/scala/camp/UartTx.scala:32:7
-    if (reset) begin	// src/main/scala/camp/UartTx.scala:32:7
-      rateCounter <= 8'h0;	// src/main/scala/camp/UartTx.scala:40:28
-      bitCounter <= 4'h0;	// src/main/scala/camp/UartTx.scala:41:27
+  reg  [7:0]  anodes;	// src/main/scala/camp/LEDmatrix.scala:53:23
+  reg  [7:0]  cathodes;	// src/main/scala/camp/LEDmatrix.scala:54:25
+  reg  [19:0] refleshCounter;	// src/main/scala/camp/LEDmatrix.scala:56:31
+  reg  [2:0]  rowCounter;	// src/main/scala/camp/LEDmatrix.scala:57:27
+  wire        _GEN = refleshCounter == 20'h0;	// src/main/scala/camp/LEDmatrix.scala:56:31, :71:23
+  wire        _GEN_0 = rowCounter == 3'h0;	// src/main/scala/camp/LEDmatrix.scala:57:27, :74:21
+  always @(posedge clock) begin	// src/main/scala/camp/LEDmatrix.scala:46:7
+    if (reset) begin	// src/main/scala/camp/LEDmatrix.scala:46:7
+      anodes <= 8'h1;	// src/main/scala/camp/LEDmatrix.scala:53:23
+      cathodes <= 8'h1;	// src/main/scala/camp/LEDmatrix.scala:53:23, :54:25
+      refleshCounter <= 20'h0;	// src/main/scala/camp/LEDmatrix.scala:56:31
+      rowCounter <= 3'h0;	// src/main/scala/camp/LEDmatrix.scala:57:27
     end
-    else begin	// src/main/scala/camp/UartTx.scala:32:7
-      if (|bitCounter) begin	// src/main/scala/camp/UartTx.scala:41:27, :51:19
-        if (_GEN_0)	// src/main/scala/camp/UartTx.scala:52:22
-          rateCounter <= 8'hE9;	// src/main/scala/camp/UartTx.scala:40:28, :49:17
-        else	// src/main/scala/camp/UartTx.scala:52:22
-          rateCounter <= rateCounter - 8'h1;	// src/main/scala/camp/UartTx.scala:40:28, :57:34
+    else begin	// src/main/scala/camp/LEDmatrix.scala:46:7
+      if (io_mem_wen)	// src/main/scala/camp/LEDmatrix.scala:47:14
+        anodes <= io_mem_wdata[15:8];	// src/main/scala/camp/LEDmatrix.scala:53:23, :67:27
+      if (_GEN & _GEN_0) begin	// src/main/scala/camp/LEDmatrix.scala:54:25, :71:{23,32}, :74:{21,30}, :75:16
+        if (cathodes == 8'h1)	// src/main/scala/camp/LEDmatrix.scala:53:23, :54:25, :75:32
+          cathodes <= 8'h80;	// src/main/scala/camp/LEDmatrix.scala:54:25, :75:22
+        else	// src/main/scala/camp/LEDmatrix.scala:75:32
+          cathodes <= {1'h0, cathodes[7:1]};	// src/main/scala/camp/LEDmatrix.scala:46:7, :54:25, :75:{22,57}
       end
-      else if (_GEN)	// src/main/scala/camp/UartTx.scala:46:17
-        rateCounter <= 8'hE9;	// src/main/scala/camp/UartTx.scala:40:28, :49:17
-      if (_GEN_1)	// src/main/scala/camp/UartTx.scala:46:27, :51:26, :52:31, :53:37
-        bitCounter <= bitCounter - 4'h1;	// src/main/scala/camp/UartTx.scala:41:27, :54:32
-      else if (_GEN)	// src/main/scala/camp/UartTx.scala:46:17
-        bitCounter <= 4'hA;	// src/main/scala/camp/UartTx.scala:41:27, :48:16
-    end
-    if (_GEN_1) begin	// src/main/scala/camp/UartTx.scala:46:27, :51:26, :52:31, :53:37
-      bits_0 <= bits_1;	// src/main/scala/camp/UartTx.scala:42:17
-      bits_1 <= bits_2;	// src/main/scala/camp/UartTx.scala:42:17
-      bits_2 <= bits_3;	// src/main/scala/camp/UartTx.scala:42:17
-      bits_3 <= bits_4;	// src/main/scala/camp/UartTx.scala:42:17
-      bits_4 <= bits_5;	// src/main/scala/camp/UartTx.scala:42:17
-      bits_5 <= bits_6;	// src/main/scala/camp/UartTx.scala:42:17
-      bits_6 <= bits_7;	// src/main/scala/camp/UartTx.scala:42:17
-      bits_7 <= bits_8;	// src/main/scala/camp/UartTx.scala:42:17
-      bits_8 <= bits_9;	// src/main/scala/camp/UartTx.scala:42:17
-    end
-    else begin	// src/main/scala/camp/UartTx.scala:46:27, :51:26, :52:31, :53:37
-      bits_0 <= ~_GEN & bits_0;	// src/main/scala/camp/UartTx.scala:42:17, :46:{17,27}, :47:10
-      if (_GEN) begin	// src/main/scala/camp/UartTx.scala:46:17
-        bits_1 <= io_data[0];	// src/main/scala/camp/UartTx.scala:42:17, :47:36
-        bits_2 <= io_data[1];	// src/main/scala/camp/UartTx.scala:42:17, :47:36
-        bits_3 <= io_data[2];	// src/main/scala/camp/UartTx.scala:42:17, :47:36
-        bits_4 <= io_data[3];	// src/main/scala/camp/UartTx.scala:42:17, :47:36
-        bits_5 <= io_data[4];	// src/main/scala/camp/UartTx.scala:42:17, :47:36
-        bits_6 <= io_data[5];	// src/main/scala/camp/UartTx.scala:42:17, :47:36
-        bits_7 <= io_data[6];	// src/main/scala/camp/UartTx.scala:42:17, :47:36
-        bits_8 <= io_data[7];	// src/main/scala/camp/UartTx.scala:42:17, :47:36
+      if (_GEN) begin	// src/main/scala/camp/LEDmatrix.scala:71:23
+        refleshCounter <= 20'hF423F;	// src/main/scala/camp/LEDmatrix.scala:56:31, :72:20
+        if (_GEN_0)	// src/main/scala/camp/LEDmatrix.scala:74:21
+          rowCounter <= 3'h0;	// src/main/scala/camp/LEDmatrix.scala:57:27
+        else	// src/main/scala/camp/LEDmatrix.scala:74:21
+          rowCounter <= rowCounter - 3'h1;	// src/main/scala/camp/LEDmatrix.scala:57:27, :80:32
       end
+      else	// src/main/scala/camp/LEDmatrix.scala:71:23
+        refleshCounter <= refleshCounter - 20'h1;	// src/main/scala/camp/LEDmatrix.scala:56:31, :83:38
     end
-    bits_9 <= _GEN | bits_9;	// src/main/scala/camp/UartTx.scala:42:17, :46:{17,27}, :47:10
   end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_	// src/main/scala/camp/UartTx.scala:32:7
-    `ifdef FIRRTL_BEFORE_INITIAL	// src/main/scala/camp/UartTx.scala:32:7
-      `FIRRTL_BEFORE_INITIAL	// src/main/scala/camp/UartTx.scala:32:7
+  `ifdef ENABLE_INITIAL_REG_	// src/main/scala/camp/LEDmatrix.scala:46:7
+    `ifdef FIRRTL_BEFORE_INITIAL	// src/main/scala/camp/LEDmatrix.scala:46:7
+      `FIRRTL_BEFORE_INITIAL	// src/main/scala/camp/LEDmatrix.scala:46:7
     `endif // FIRRTL_BEFORE_INITIAL
-    logic [31:0] _RANDOM[0:0];	// src/main/scala/camp/UartTx.scala:32:7
-    initial begin	// src/main/scala/camp/UartTx.scala:32:7
-      `ifdef INIT_RANDOM_PROLOG_	// src/main/scala/camp/UartTx.scala:32:7
-        `INIT_RANDOM_PROLOG_	// src/main/scala/camp/UartTx.scala:32:7
+    logic [31:0] _RANDOM[0:1];	// src/main/scala/camp/LEDmatrix.scala:46:7
+    initial begin	// src/main/scala/camp/LEDmatrix.scala:46:7
+      `ifdef INIT_RANDOM_PROLOG_	// src/main/scala/camp/LEDmatrix.scala:46:7
+        `INIT_RANDOM_PROLOG_	// src/main/scala/camp/LEDmatrix.scala:46:7
       `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT	// src/main/scala/camp/UartTx.scala:32:7
-        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;	// src/main/scala/camp/UartTx.scala:32:7
-        rateCounter = _RANDOM[/*Zero width*/ 1'b0][7:0];	// src/main/scala/camp/UartTx.scala:32:7, :40:28
-        bitCounter = _RANDOM[/*Zero width*/ 1'b0][11:8];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :41:27
-        bits_0 = _RANDOM[/*Zero width*/ 1'b0][12];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-        bits_1 = _RANDOM[/*Zero width*/ 1'b0][13];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-        bits_2 = _RANDOM[/*Zero width*/ 1'b0][14];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-        bits_3 = _RANDOM[/*Zero width*/ 1'b0][15];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-        bits_4 = _RANDOM[/*Zero width*/ 1'b0][16];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-        bits_5 = _RANDOM[/*Zero width*/ 1'b0][17];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-        bits_6 = _RANDOM[/*Zero width*/ 1'b0][18];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-        bits_7 = _RANDOM[/*Zero width*/ 1'b0][19];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-        bits_8 = _RANDOM[/*Zero width*/ 1'b0][20];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-        bits_9 = _RANDOM[/*Zero width*/ 1'b0][21];	// src/main/scala/camp/UartTx.scala:32:7, :40:28, :42:17
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL	// src/main/scala/camp/UartTx.scala:32:7
-      `FIRRTL_AFTER_INITIAL	// src/main/scala/camp/UartTx.scala:32:7
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  assign io_tx = ready | bits_0;	// src/main/scala/camp/UartTx.scala:32:7, :42:17, :43:{23,31}
-  assign io_ready = ready;	// src/main/scala/camp/UartTx.scala:32:7, :43:23
-endmodule
-
-module UartRx(	// src/main/scala/camp/UartRx.scala:33:7
-  input        clock,	// src/main/scala/camp/UartRx.scala:33:7
-               reset,	// src/main/scala/camp/UartRx.scala:33:7
-               io_out_ready,	// src/main/scala/camp/UartRx.scala:35:14
-  output       io_out_valid,	// src/main/scala/camp/UartRx.scala:35:14
-  output [7:0] io_out_bits,	// src/main/scala/camp/UartRx.scala:35:14
-  input        io_rx	// src/main/scala/camp/UartRx.scala:35:14
-);
-
-  reg  [8:0] rateCounter;	// src/main/scala/camp/UartRx.scala:40:28
-  reg  [2:0] bitCounter;	// src/main/scala/camp/UartRx.scala:41:27
-  reg        bits_1;	// src/main/scala/camp/UartRx.scala:42:17
-  reg        bits_2;	// src/main/scala/camp/UartRx.scala:42:17
-  reg        bits_3;	// src/main/scala/camp/UartRx.scala:42:17
-  reg        bits_4;	// src/main/scala/camp/UartRx.scala:42:17
-  reg        bits_5;	// src/main/scala/camp/UartRx.scala:42:17
-  reg        bits_6;	// src/main/scala/camp/UartRx.scala:42:17
-  reg        bits_7;	// src/main/scala/camp/UartRx.scala:42:17
-  reg        rxRegs_0;	// src/main/scala/camp/UartRx.scala:43:23
-  reg        rxRegs_1;	// src/main/scala/camp/UartRx.scala:43:23
-  reg        running;	// src/main/scala/camp/UartRx.scala:45:24
-  reg        outValid;	// src/main/scala/camp/UartRx.scala:47:25
-  reg  [7:0] outBits;	// src/main/scala/camp/UartRx.scala:48:20
-  wire       _GEN = ~rxRegs_1 & rxRegs_0;	// src/main/scala/camp/UartRx.scala:43:23, :60:{10,21}
-  wire       _GEN_0 = rateCounter == 9'h0;	// src/main/scala/camp/UartRx.scala:40:28, :66:22
-  wire       _GEN_1 = bitCounter == 3'h0;	// src/main/scala/camp/UartRx.scala:41:27, :69:23
-  wire       _GEN_2 = _GEN_0 & _GEN_1;	// src/main/scala/camp/UartRx.scala:52:30, :66:{22,31}, :69:{23,32}, :70:18
-  wire       _GEN_3 = running & _GEN_2;	// src/main/scala/camp/UartRx.scala:45:24, :52:30, :59:18, :66:31, :69:32, :70:18
-  always @(posedge clock) begin	// src/main/scala/camp/UartRx.scala:33:7
-    if (reset) begin	// src/main/scala/camp/UartRx.scala:33:7
-      rateCounter <= 9'h0;	// src/main/scala/camp/UartRx.scala:40:28
-      bitCounter <= 3'h0;	// src/main/scala/camp/UartRx.scala:41:27
-      rxRegs_0 <= 1'h0;	// src/main/scala/camp/UartRx.scala:33:7, :43:23
-      rxRegs_1 <= 1'h0;	// src/main/scala/camp/UartRx.scala:33:7, :43:23
-      running <= 1'h0;	// src/main/scala/camp/UartRx.scala:33:7, :45:24
-      outValid <= 1'h0;	// src/main/scala/camp/UartRx.scala:33:7, :47:25
-    end
-    else begin	// src/main/scala/camp/UartRx.scala:33:7
-      if (running) begin	// src/main/scala/camp/UartRx.scala:45:24
-        if (_GEN_0) begin	// src/main/scala/camp/UartRx.scala:66:22
-          if (~_GEN_1)	// src/main/scala/camp/UartRx.scala:69:23
-            rateCounter <= 9'hE9;	// src/main/scala/camp/UartRx.scala:40:28, :75:21
-        end
-        else	// src/main/scala/camp/UartRx.scala:66:22
-          rateCounter <= rateCounter - 9'h1;	// src/main/scala/camp/UartRx.scala:40:28, :79:34
-        if (~_GEN_0 | _GEN_1) begin	// src/main/scala/camp/UartRx.scala:41:27, :66:{22,31}, :69:{23,32}
-        end
-        else	// src/main/scala/camp/UartRx.scala:41:27, :66:31, :69:32
-          bitCounter <= bitCounter - 3'h1;	// src/main/scala/camp/UartRx.scala:41:27, :76:34
-        running <= ~_GEN_2 & running;	// src/main/scala/camp/UartRx.scala:45:24, :52:30, :66:31, :69:32, :70:18, :73:17
-      end
-      else begin	// src/main/scala/camp/UartRx.scala:45:24
-        if (_GEN) begin	// src/main/scala/camp/UartRx.scala:60:21
-          rateCounter <= 9'h15E;	// src/main/scala/camp/UartRx.scala:40:28, :61:19
-          bitCounter <= 3'h7;	// src/main/scala/camp/UartRx.scala:41:27, :62:18
-        end
-        running <= _GEN | running;	// src/main/scala/camp/UartRx.scala:45:24, :60:{21,35}, :63:15
-      end
-      rxRegs_0 <= rxRegs_1;	// src/main/scala/camp/UartRx.scala:43:23
-      rxRegs_1 <= io_rx;	// src/main/scala/camp/UartRx.scala:43:23
-      outValid <= _GEN_3 | ~(outValid & io_out_ready) & outValid;	// src/main/scala/camp/UartRx.scala:47:25, :52:{17,30}, :53:14, :59:18, :66:31
-    end
-    if (running & _GEN_0) begin	// src/main/scala/camp/UartRx.scala:42:17, :45:24, :59:18, :66:{22,31}
-      bits_1 <= bits_2;	// src/main/scala/camp/UartRx.scala:42:17
-      bits_2 <= bits_3;	// src/main/scala/camp/UartRx.scala:42:17
-      bits_3 <= bits_4;	// src/main/scala/camp/UartRx.scala:42:17
-      bits_4 <= bits_5;	// src/main/scala/camp/UartRx.scala:42:17
-      bits_5 <= bits_6;	// src/main/scala/camp/UartRx.scala:42:17
-      bits_6 <= bits_7;	// src/main/scala/camp/UartRx.scala:42:17
-      bits_7 <= rxRegs_0;	// src/main/scala/camp/UartRx.scala:42:17, :43:23
-    end
-    if (_GEN_3)	// src/main/scala/camp/UartRx.scala:48:20, :52:30, :59:18, :66:31
-      outBits <= {rxRegs_0, bits_7, bits_6, bits_5, bits_4, bits_3, bits_2, bits_1};	// src/main/scala/camp/UartRx.scala:42:17, :43:23, :48:20, :71:23
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_	// src/main/scala/camp/UartRx.scala:33:7
-    `ifdef FIRRTL_BEFORE_INITIAL	// src/main/scala/camp/UartRx.scala:33:7
-      `FIRRTL_BEFORE_INITIAL	// src/main/scala/camp/UartRx.scala:33:7
-    `endif // FIRRTL_BEFORE_INITIAL
-    logic [31:0] _RANDOM[0:1];	// src/main/scala/camp/UartRx.scala:33:7
-    initial begin	// src/main/scala/camp/UartRx.scala:33:7
-      `ifdef INIT_RANDOM_PROLOG_	// src/main/scala/camp/UartRx.scala:33:7
-        `INIT_RANDOM_PROLOG_	// src/main/scala/camp/UartRx.scala:33:7
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT	// src/main/scala/camp/UartRx.scala:33:7
+      `ifdef RANDOMIZE_REG_INIT	// src/main/scala/camp/LEDmatrix.scala:46:7
         for (logic [1:0] i = 2'h0; i < 2'h2; i += 2'h1) begin
-          _RANDOM[i[0]] = `RANDOM;	// src/main/scala/camp/UartRx.scala:33:7
-        end	// src/main/scala/camp/UartRx.scala:33:7
-        rateCounter = _RANDOM[1'h0][8:0];	// src/main/scala/camp/UartRx.scala:33:7, :40:28
-        bitCounter = _RANDOM[1'h0][11:9];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :41:27
-        bits_1 = _RANDOM[1'h0][13];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :42:17
-        bits_2 = _RANDOM[1'h0][14];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :42:17
-        bits_3 = _RANDOM[1'h0][15];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :42:17
-        bits_4 = _RANDOM[1'h0][16];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :42:17
-        bits_5 = _RANDOM[1'h0][17];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :42:17
-        bits_6 = _RANDOM[1'h0][18];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :42:17
-        bits_7 = _RANDOM[1'h0][19];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :42:17
-        rxRegs_0 = _RANDOM[1'h0][20];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :43:23
-        rxRegs_1 = _RANDOM[1'h0][21];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :43:23
-        running = _RANDOM[1'h0][23];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :45:24
-        outValid = _RANDOM[1'h0][24];	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :47:25
-        outBits = {_RANDOM[1'h0][31:25], _RANDOM[1'h1][0]};	// src/main/scala/camp/UartRx.scala:33:7, :40:28, :48:20
+          _RANDOM[i[0]] = `RANDOM;	// src/main/scala/camp/LEDmatrix.scala:46:7
+        end	// src/main/scala/camp/LEDmatrix.scala:46:7
+        anodes = _RANDOM[1'h0][7:0];	// src/main/scala/camp/LEDmatrix.scala:46:7, :53:23
+        cathodes = _RANDOM[1'h0][15:8];	// src/main/scala/camp/LEDmatrix.scala:46:7, :53:23, :54:25
+        refleshCounter = {_RANDOM[1'h0][31:16], _RANDOM[1'h1][3:0]};	// src/main/scala/camp/LEDmatrix.scala:46:7, :53:23, :56:31
+        rowCounter = _RANDOM[1'h1][6:4];	// src/main/scala/camp/LEDmatrix.scala:46:7, :56:31, :57:27
       `endif // RANDOMIZE_REG_INIT
     end // initial
-    `ifdef FIRRTL_AFTER_INITIAL	// src/main/scala/camp/UartRx.scala:33:7
-      `FIRRTL_AFTER_INITIAL	// src/main/scala/camp/UartRx.scala:33:7
+    `ifdef FIRRTL_AFTER_INITIAL	// src/main/scala/camp/LEDmatrix.scala:46:7
+      `FIRRTL_AFTER_INITIAL	// src/main/scala/camp/LEDmatrix.scala:46:7
     `endif // FIRRTL_AFTER_INITIAL
   `endif // ENABLE_INITIAL_REG_
-  assign io_out_valid = outValid;	// src/main/scala/camp/UartRx.scala:33:7, :47:25
-  assign io_out_bits = outBits;	// src/main/scala/camp/UartRx.scala:33:7, :48:20
-endmodule
-
-module UartTxConnector(	// src/main/scala/camp/UartTx.scala:5:7
-  output [31:0] io_mem_rdata,	// src/main/scala/camp/UartTx.scala:6:14
-  input         io_mem_wen,	// src/main/scala/camp/UartTx.scala:6:14
-  input  [31:0] io_mem_wdata,	// src/main/scala/camp/UartTx.scala:6:14
-  output [7:0]  io_data,	// src/main/scala/camp/UartTx.scala:6:14
-  input         io_ready,	// src/main/scala/camp/UartTx.scala:6:14
-  output        io_valid	// src/main/scala/camp/UartTx.scala:6:14
-);
-
-  assign io_mem_rdata = {31'h0, io_ready};	// src/main/scala/camp/UartTx.scala:5:7, :14:16
-  assign io_data = io_mem_wdata[7:0];	// src/main/scala/camp/UartTx.scala:5:7, :17:11
-  assign io_valid = io_mem_wen;	// src/main/scala/camp/UartTx.scala:5:7
-endmodule
-
-module UartRxConnector(	// src/main/scala/camp/UartRx.scala:5:7
-  input         clock,	// src/main/scala/camp/UartRx.scala:5:7
-                reset,	// src/main/scala/camp/UartRx.scala:5:7
-  input  [31:0] io_mem_addr,	// src/main/scala/camp/UartRx.scala:6:14
-  output [31:0] io_mem_rdata,	// src/main/scala/camp/UartRx.scala:6:14
-  input         io_mem_ren,	// src/main/scala/camp/UartRx.scala:6:14
-  output        io_mem_rvalid,	// src/main/scala/camp/UartRx.scala:6:14
-  input  [31:0] io_data,	// src/main/scala/camp/UartRx.scala:6:14
-  output        io_ready,	// src/main/scala/camp/UartRx.scala:6:14
-  input         io_valid	// src/main/scala/camp/UartRx.scala:6:14
-);
-
-  reg        received;	// src/main/scala/camp/UartRx.scala:12:25
-  reg  [7:0] data;	// src/main/scala/camp/UartRx.scala:13:21
-  wire       _GEN = io_mem_ren & received;	// src/main/scala/camp/UartRx.scala:12:25, :26:19
-  wire       _GEN_0 = ~received & io_valid;	// src/main/scala/camp/UartRx.scala:12:25, :16:15, :17:18
-  always @(posedge clock) begin	// src/main/scala/camp/UartRx.scala:5:7
-    if (reset) begin	// src/main/scala/camp/UartRx.scala:5:7
-      received <= 1'h0;	// src/main/scala/camp/UartRx.scala:5:7, :12:25
-      data <= 8'h0;	// src/main/scala/camp/UartRx.scala:13:21
-    end
-    else begin	// src/main/scala/camp/UartRx.scala:5:7
-      received <= ~_GEN & (_GEN_0 | received);	// src/main/scala/camp/UartRx.scala:12:25, :17:{18,31}, :20:14, :26:{19,32}, :28:14
-      if (_GEN_0)	// src/main/scala/camp/UartRx.scala:17:18
-        data <= io_data[7:0];	// src/main/scala/camp/UartRx.scala:13:21, :18:20
-    end
-  end // always @(posedge)
-  `ifdef ENABLE_INITIAL_REG_	// src/main/scala/camp/UartRx.scala:5:7
-    `ifdef FIRRTL_BEFORE_INITIAL	// src/main/scala/camp/UartRx.scala:5:7
-      `FIRRTL_BEFORE_INITIAL	// src/main/scala/camp/UartRx.scala:5:7
-    `endif // FIRRTL_BEFORE_INITIAL
-    logic [31:0] _RANDOM[0:0];	// src/main/scala/camp/UartRx.scala:5:7
-    initial begin	// src/main/scala/camp/UartRx.scala:5:7
-      `ifdef INIT_RANDOM_PROLOG_	// src/main/scala/camp/UartRx.scala:5:7
-        `INIT_RANDOM_PROLOG_	// src/main/scala/camp/UartRx.scala:5:7
-      `endif // INIT_RANDOM_PROLOG_
-      `ifdef RANDOMIZE_REG_INIT	// src/main/scala/camp/UartRx.scala:5:7
-        _RANDOM[/*Zero width*/ 1'b0] = `RANDOM;	// src/main/scala/camp/UartRx.scala:5:7
-        received = _RANDOM[/*Zero width*/ 1'b0][0];	// src/main/scala/camp/UartRx.scala:5:7, :12:25
-        data = _RANDOM[/*Zero width*/ 1'b0][8:1];	// src/main/scala/camp/UartRx.scala:5:7, :12:25, :13:21
-      `endif // RANDOMIZE_REG_INIT
-    end // initial
-    `ifdef FIRRTL_AFTER_INITIAL	// src/main/scala/camp/UartRx.scala:5:7
-      `FIRRTL_AFTER_INITIAL	// src/main/scala/camp/UartRx.scala:5:7
-    `endif // FIRRTL_AFTER_INITIAL
-  `endif // ENABLE_INITIAL_REG_
-  assign io_mem_rdata =
-    {24'h0, _GEN | io_mem_addr[1:0] == 2'h0 ? data : {7'h0, received}};	// src/main/scala/camp/UartRx.scala:5:7, :12:25, :13:21, :22:{16,40,64}, :26:{19,32}, :27:18
-  assign io_mem_rvalid = received;	// src/main/scala/camp/UartRx.scala:5:7, :12:25
-  assign io_ready = ~received;	// src/main/scala/camp/UartRx.scala:5:7, :12:25, :16:15
+  assign io_mem_rvalid = ~io_mem_wen;	// src/main/scala/camp/LEDmatrix.scala:46:7, :64:17, :66:20, :68:19
+  assign io_anodes = anodes;	// src/main/scala/camp/LEDmatrix.scala:46:7, :53:23
+  assign io_cathodes = ~cathodes;	// src/main/scala/camp/LEDmatrix.scala:46:7, :54:25, :61:18
 endmodule
 
 // VCS coverage exclude_file
@@ -1541,56 +1323,47 @@ module Top(	// src/main/scala/camp/Top.scala:6:7
   output        io_exit,	// src/main/scala/camp/Top.scala:7:14
   output [31:0] io_debug_pc,	// src/main/scala/camp/Top.scala:7:14
                 io_gpio_out,	// src/main/scala/camp/Top.scala:7:14
+  output [7:0]  io_anodes,	// src/main/scala/camp/Top.scala:7:14
+                io_cathodes,	// src/main/scala/camp/Top.scala:7:14
   output        io_success,	// src/main/scala/camp/Top.scala:7:14
-                io_uart_tx,	// src/main/scala/camp/Top.scala:7:14
   input         io_uart_rx	// src/main/scala/camp/Top.scala:7:14
 );
 
-  wire [31:0] _memory_io_imem_inst;	// src/main/scala/camp/Top.scala:37:22
-  wire        _memory_io_imem_valid;	// src/main/scala/camp/Top.scala:37:22
-  wire [31:0] _memory_io_dmem_rdata;	// src/main/scala/camp/Top.scala:37:22
-  wire        _memory_io_dmem_rvalid;	// src/main/scala/camp/Top.scala:37:22
-  wire [31:0] _uartRxConnector_io_mem_rdata;	// src/main/scala/camp/Top.scala:33:31
-  wire        _uartRxConnector_io_mem_rvalid;	// src/main/scala/camp/Top.scala:33:31
-  wire        _uartRxConnector_io_ready;	// src/main/scala/camp/Top.scala:33:31
-  wire [31:0] _uartTxConnector_io_mem_rdata;	// src/main/scala/camp/Top.scala:32:31
-  wire [7:0]  _uartTxConnector_io_data;	// src/main/scala/camp/Top.scala:32:31
-  wire        _uartTxConnector_io_valid;	// src/main/scala/camp/Top.scala:32:31
-  wire        _uartRx_io_out_valid;	// src/main/scala/camp/Top.scala:31:22
-  wire [7:0]  _uartRx_io_out_bits;	// src/main/scala/camp/Top.scala:31:22
-  wire        _uartTx_io_ready;	// src/main/scala/camp/Top.scala:30:22
-  wire [31:0] _gpio_io_mem_rdata;	// src/main/scala/camp/Top.scala:29:20
-  wire [31:0] _decoder_io_initiator_rdata;	// src/main/scala/camp/Top.scala:19:23
-  wire        _decoder_io_initiator_rvalid;	// src/main/scala/camp/Top.scala:19:23
-  wire [31:0] _decoder_io_targets_0_addr;	// src/main/scala/camp/Top.scala:19:23
-  wire        _decoder_io_targets_0_ren;	// src/main/scala/camp/Top.scala:19:23
-  wire        _decoder_io_targets_0_wen;	// src/main/scala/camp/Top.scala:19:23
-  wire [3:0]  _decoder_io_targets_0_wstrb;	// src/main/scala/camp/Top.scala:19:23
-  wire [31:0] _decoder_io_targets_0_wdata;	// src/main/scala/camp/Top.scala:19:23
-  wire [31:0] _decoder_io_targets_1_addr;	// src/main/scala/camp/Top.scala:19:23
-  wire        _decoder_io_targets_1_wen;	// src/main/scala/camp/Top.scala:19:23
-  wire [3:0]  _decoder_io_targets_1_wstrb;	// src/main/scala/camp/Top.scala:19:23
-  wire [31:0] _decoder_io_targets_1_wdata;	// src/main/scala/camp/Top.scala:19:23
-  wire        _decoder_io_targets_2_wen;	// src/main/scala/camp/Top.scala:19:23
-  wire [31:0] _decoder_io_targets_2_wdata;	// src/main/scala/camp/Top.scala:19:23
-  wire [31:0] _decoder_io_targets_3_addr;	// src/main/scala/camp/Top.scala:19:23
-  wire        _decoder_io_targets_3_ren;	// src/main/scala/camp/Top.scala:19:23
-  wire [31:0] _core_io_imem_addr;	// src/main/scala/camp/Top.scala:18:20
-  wire [31:0] _core_io_dmem_addr;	// src/main/scala/camp/Top.scala:18:20
-  wire        _core_io_dmem_ren;	// src/main/scala/camp/Top.scala:18:20
-  wire        _core_io_dmem_wen;	// src/main/scala/camp/Top.scala:18:20
-  wire [3:0]  _core_io_dmem_wstrb;	// src/main/scala/camp/Top.scala:18:20
-  wire [31:0] _core_io_dmem_wdata;	// src/main/scala/camp/Top.scala:18:20
-  Core core (	// src/main/scala/camp/Top.scala:18:20
+  wire [31:0] _memory_io_imem_inst;	// src/main/scala/camp/Top.scala:40:22
+  wire        _memory_io_imem_valid;	// src/main/scala/camp/Top.scala:40:22
+  wire [31:0] _memory_io_dmem_rdata;	// src/main/scala/camp/Top.scala:40:22
+  wire        _memory_io_dmem_rvalid;	// src/main/scala/camp/Top.scala:40:22
+  wire        _ledMatrix_io_mem_rvalid;	// src/main/scala/camp/Top.scala:36:25
+  wire [31:0] _gpio_io_mem_rdata;	// src/main/scala/camp/Top.scala:31:20
+  wire [31:0] _decoder_io_initiator_rdata;	// src/main/scala/camp/Top.scala:21:23
+  wire        _decoder_io_initiator_rvalid;	// src/main/scala/camp/Top.scala:21:23
+  wire [31:0] _decoder_io_targets_0_addr;	// src/main/scala/camp/Top.scala:21:23
+  wire        _decoder_io_targets_0_ren;	// src/main/scala/camp/Top.scala:21:23
+  wire        _decoder_io_targets_0_wen;	// src/main/scala/camp/Top.scala:21:23
+  wire [3:0]  _decoder_io_targets_0_wstrb;	// src/main/scala/camp/Top.scala:21:23
+  wire [31:0] _decoder_io_targets_0_wdata;	// src/main/scala/camp/Top.scala:21:23
+  wire [31:0] _decoder_io_targets_1_addr;	// src/main/scala/camp/Top.scala:21:23
+  wire        _decoder_io_targets_1_wen;	// src/main/scala/camp/Top.scala:21:23
+  wire [3:0]  _decoder_io_targets_1_wstrb;	// src/main/scala/camp/Top.scala:21:23
+  wire [31:0] _decoder_io_targets_1_wdata;	// src/main/scala/camp/Top.scala:21:23
+  wire        _decoder_io_targets_2_wen;	// src/main/scala/camp/Top.scala:21:23
+  wire [31:0] _decoder_io_targets_2_wdata;	// src/main/scala/camp/Top.scala:21:23
+  wire [31:0] _core_io_imem_addr;	// src/main/scala/camp/Top.scala:20:20
+  wire [31:0] _core_io_dmem_addr;	// src/main/scala/camp/Top.scala:20:20
+  wire        _core_io_dmem_ren;	// src/main/scala/camp/Top.scala:20:20
+  wire        _core_io_dmem_wen;	// src/main/scala/camp/Top.scala:20:20
+  wire [3:0]  _core_io_dmem_wstrb;	// src/main/scala/camp/Top.scala:20:20
+  wire [31:0] _core_io_dmem_wdata;	// src/main/scala/camp/Top.scala:20:20
+  Core core (	// src/main/scala/camp/Top.scala:20:20
     .clock          (clock),
     .reset          (reset),
     .io_imem_addr   (_core_io_imem_addr),
-    .io_imem_inst   (_memory_io_imem_inst),	// src/main/scala/camp/Top.scala:37:22
-    .io_imem_valid  (_memory_io_imem_valid),	// src/main/scala/camp/Top.scala:37:22
+    .io_imem_inst   (_memory_io_imem_inst),	// src/main/scala/camp/Top.scala:40:22
+    .io_imem_valid  (_memory_io_imem_valid),	// src/main/scala/camp/Top.scala:40:22
     .io_dmem_addr   (_core_io_dmem_addr),
-    .io_dmem_rdata  (_decoder_io_initiator_rdata),	// src/main/scala/camp/Top.scala:19:23
+    .io_dmem_rdata  (_decoder_io_initiator_rdata),	// src/main/scala/camp/Top.scala:21:23
     .io_dmem_ren    (_core_io_dmem_ren),
-    .io_dmem_rvalid (_decoder_io_initiator_rvalid),	// src/main/scala/camp/Top.scala:19:23
+    .io_dmem_rvalid (_decoder_io_initiator_rvalid),	// src/main/scala/camp/Top.scala:21:23
     .io_dmem_wen    (_core_io_dmem_wen),
     .io_dmem_wstrb  (_core_io_dmem_wstrb),
     .io_dmem_wdata  (_core_io_dmem_wdata),
@@ -1598,92 +1371,62 @@ module Top(	// src/main/scala/camp/Top.scala:6:7
     .io_exit        (io_exit),
     .io_debug_pc    (io_debug_pc)
   );
-  DMemDecoder decoder (	// src/main/scala/camp/Top.scala:19:23
-    .io_initiator_addr   (_core_io_dmem_addr),	// src/main/scala/camp/Top.scala:18:20
+  DMemDecoder decoder (	// src/main/scala/camp/Top.scala:21:23
+    .io_initiator_addr   (_core_io_dmem_addr),	// src/main/scala/camp/Top.scala:20:20
     .io_initiator_rdata  (_decoder_io_initiator_rdata),
-    .io_initiator_ren    (_core_io_dmem_ren),	// src/main/scala/camp/Top.scala:18:20
+    .io_initiator_ren    (_core_io_dmem_ren),	// src/main/scala/camp/Top.scala:20:20
     .io_initiator_rvalid (_decoder_io_initiator_rvalid),
-    .io_initiator_wen    (_core_io_dmem_wen),	// src/main/scala/camp/Top.scala:18:20
-    .io_initiator_wstrb  (_core_io_dmem_wstrb),	// src/main/scala/camp/Top.scala:18:20
-    .io_initiator_wdata  (_core_io_dmem_wdata),	// src/main/scala/camp/Top.scala:18:20
+    .io_initiator_wen    (_core_io_dmem_wen),	// src/main/scala/camp/Top.scala:20:20
+    .io_initiator_wstrb  (_core_io_dmem_wstrb),	// src/main/scala/camp/Top.scala:20:20
+    .io_initiator_wdata  (_core_io_dmem_wdata),	// src/main/scala/camp/Top.scala:20:20
     .io_targets_0_addr   (_decoder_io_targets_0_addr),
-    .io_targets_0_rdata  (_memory_io_dmem_rdata),	// src/main/scala/camp/Top.scala:37:22
+    .io_targets_0_rdata  (_memory_io_dmem_rdata),	// src/main/scala/camp/Top.scala:40:22
     .io_targets_0_ren    (_decoder_io_targets_0_ren),
-    .io_targets_0_rvalid (_memory_io_dmem_rvalid),	// src/main/scala/camp/Top.scala:37:22
+    .io_targets_0_rvalid (_memory_io_dmem_rvalid),	// src/main/scala/camp/Top.scala:40:22
     .io_targets_0_wen    (_decoder_io_targets_0_wen),
     .io_targets_0_wstrb  (_decoder_io_targets_0_wstrb),
     .io_targets_0_wdata  (_decoder_io_targets_0_wdata),
     .io_targets_1_addr   (_decoder_io_targets_1_addr),
-    .io_targets_1_rdata  (_gpio_io_mem_rdata),	// src/main/scala/camp/Top.scala:29:20
+    .io_targets_1_rdata  (_gpio_io_mem_rdata),	// src/main/scala/camp/Top.scala:31:20
     .io_targets_1_wen    (_decoder_io_targets_1_wen),
     .io_targets_1_wstrb  (_decoder_io_targets_1_wstrb),
     .io_targets_1_wdata  (_decoder_io_targets_1_wdata),
-    .io_targets_2_rdata  (_uartTxConnector_io_mem_rdata),	// src/main/scala/camp/Top.scala:32:31
+    .io_targets_2_rvalid (_ledMatrix_io_mem_rvalid),	// src/main/scala/camp/Top.scala:36:25
     .io_targets_2_wen    (_decoder_io_targets_2_wen),
-    .io_targets_2_wdata  (_decoder_io_targets_2_wdata),
-    .io_targets_3_addr   (_decoder_io_targets_3_addr),
-    .io_targets_3_rdata  (_uartRxConnector_io_mem_rdata),	// src/main/scala/camp/Top.scala:33:31
-    .io_targets_3_ren    (_decoder_io_targets_3_ren),
-    .io_targets_3_rvalid (_uartRxConnector_io_mem_rvalid)	// src/main/scala/camp/Top.scala:33:31
+    .io_targets_2_wdata  (_decoder_io_targets_2_wdata)
   );
-  Gpio gpio (	// src/main/scala/camp/Top.scala:29:20
+  Gpio gpio (	// src/main/scala/camp/Top.scala:31:20
     .clock        (clock),
     .reset        (reset),
-    .io_mem_addr  (_decoder_io_targets_1_addr),	// src/main/scala/camp/Top.scala:19:23
+    .io_mem_addr  (_decoder_io_targets_1_addr),	// src/main/scala/camp/Top.scala:21:23
     .io_mem_rdata (_gpio_io_mem_rdata),
-    .io_mem_wen   (_decoder_io_targets_1_wen),	// src/main/scala/camp/Top.scala:19:23
-    .io_mem_wstrb (_decoder_io_targets_1_wstrb),	// src/main/scala/camp/Top.scala:19:23
-    .io_mem_wdata (_decoder_io_targets_1_wdata),	// src/main/scala/camp/Top.scala:19:23
+    .io_mem_wen   (_decoder_io_targets_1_wen),	// src/main/scala/camp/Top.scala:21:23
+    .io_mem_wstrb (_decoder_io_targets_1_wstrb),	// src/main/scala/camp/Top.scala:21:23
+    .io_mem_wdata (_decoder_io_targets_1_wdata),	// src/main/scala/camp/Top.scala:21:23
     .io_out       (io_gpio_out)
   );
-  UartTx uartTx (	// src/main/scala/camp/Top.scala:30:22
-    .clock    (clock),
-    .reset    (reset),
-    .io_tx    (io_uart_tx),
-    .io_data  (_uartTxConnector_io_data),	// src/main/scala/camp/Top.scala:32:31
-    .io_ready (_uartTx_io_ready),
-    .io_valid (_uartTxConnector_io_valid)	// src/main/scala/camp/Top.scala:32:31
-  );
-  UartRx uartRx (	// src/main/scala/camp/Top.scala:31:22
-    .clock        (clock),
-    .reset        (reset),
-    .io_out_ready (_uartRxConnector_io_ready),	// src/main/scala/camp/Top.scala:33:31
-    .io_out_valid (_uartRx_io_out_valid),
-    .io_out_bits  (_uartRx_io_out_bits),
-    .io_rx        (io_uart_rx)
-  );
-  UartTxConnector uartTxConnector (	// src/main/scala/camp/Top.scala:32:31
-    .io_mem_rdata (_uartTxConnector_io_mem_rdata),
-    .io_mem_wen   (_decoder_io_targets_2_wen),	// src/main/scala/camp/Top.scala:19:23
-    .io_mem_wdata (_decoder_io_targets_2_wdata),	// src/main/scala/camp/Top.scala:19:23
-    .io_data      (_uartTxConnector_io_data),
-    .io_ready     (_uartTx_io_ready),	// src/main/scala/camp/Top.scala:30:22
-    .io_valid     (_uartTxConnector_io_valid)
-  );
-  UartRxConnector uartRxConnector (	// src/main/scala/camp/Top.scala:33:31
+  LedMatrix ledMatrix (	// src/main/scala/camp/Top.scala:36:25
     .clock         (clock),
     .reset         (reset),
-    .io_mem_addr   (_decoder_io_targets_3_addr),	// src/main/scala/camp/Top.scala:19:23
-    .io_mem_rdata  (_uartRxConnector_io_mem_rdata),
-    .io_mem_ren    (_decoder_io_targets_3_ren),	// src/main/scala/camp/Top.scala:19:23
-    .io_mem_rvalid (_uartRxConnector_io_mem_rvalid),
-    .io_data       ({24'h0, _uartRx_io_out_bits}),	// src/main/scala/camp/Top.scala:31:22, :56:27
-    .io_ready      (_uartRxConnector_io_ready),
-    .io_valid      (_uartRx_io_out_valid)	// src/main/scala/camp/Top.scala:31:22
+    .io_mem_rvalid (_ledMatrix_io_mem_rvalid),
+    .io_mem_wen    (_decoder_io_targets_2_wen),	// src/main/scala/camp/Top.scala:21:23
+    .io_mem_wdata  (_decoder_io_targets_2_wdata),	// src/main/scala/camp/Top.scala:21:23
+    .io_anodes     (io_anodes),
+    .io_cathodes   (io_cathodes)
   );
-  Memory memory (	// src/main/scala/camp/Top.scala:37:22
+  Memory memory (	// src/main/scala/camp/Top.scala:40:22
     .clock          (clock),
     .reset          (reset),
-    .io_imem_addr   (_core_io_imem_addr),	// src/main/scala/camp/Top.scala:18:20
+    .io_imem_addr   (_core_io_imem_addr),	// src/main/scala/camp/Top.scala:20:20
     .io_imem_inst   (_memory_io_imem_inst),
     .io_imem_valid  (_memory_io_imem_valid),
-    .io_dmem_addr   (_decoder_io_targets_0_addr),	// src/main/scala/camp/Top.scala:19:23
+    .io_dmem_addr   (_decoder_io_targets_0_addr),	// src/main/scala/camp/Top.scala:21:23
     .io_dmem_rdata  (_memory_io_dmem_rdata),
-    .io_dmem_ren    (_decoder_io_targets_0_ren),	// src/main/scala/camp/Top.scala:19:23
+    .io_dmem_ren    (_decoder_io_targets_0_ren),	// src/main/scala/camp/Top.scala:21:23
     .io_dmem_rvalid (_memory_io_dmem_rvalid),
-    .io_dmem_wen    (_decoder_io_targets_0_wen),	// src/main/scala/camp/Top.scala:19:23
-    .io_dmem_wstrb  (_decoder_io_targets_0_wstrb),	// src/main/scala/camp/Top.scala:19:23
-    .io_dmem_wdata  (_decoder_io_targets_0_wdata)	// src/main/scala/camp/Top.scala:19:23
+    .io_dmem_wen    (_decoder_io_targets_0_wen),	// src/main/scala/camp/Top.scala:21:23
+    .io_dmem_wstrb  (_decoder_io_targets_0_wstrb),	// src/main/scala/camp/Top.scala:21:23
+    .io_dmem_wdata  (_decoder_io_targets_0_wdata)	// src/main/scala/camp/Top.scala:21:23
   );
 endmodule
 

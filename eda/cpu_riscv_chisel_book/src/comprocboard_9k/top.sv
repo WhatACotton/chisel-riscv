@@ -14,10 +14,10 @@ module top(
     // Input button
     input wire button_s2,
 
-    // LED matrix + 7+1 seg LED
-    output logic [7:0] row,
-    output logic [7:0] d,
-    output logic seven_seg,
+    // // LED matrix + 7+1 seg LED
+    // output logic [7:0] row,
+    // output logic [7:0] d,
+    // output logic seven_seg,
 
     // Tang Nano On Board LEDs
     output logic [5:0] led,
@@ -32,10 +32,16 @@ module top(
     output logic uart_tx,
     input wire uart_rx,
 
+    output logic [7:0] anodes,
+    output logic [7:0] cathodes,
+
     // Debug
     output logic [5:0] debug_out
 );
-
+    // LED matrix + 7+1 seg LED
+     logic [7:0] row;
+     logic [7:0] d;
+     logic seven_seg;
 assign row = '1;
 //assign d = 8'b0000_1111;
 assign seven_seg = 0;
@@ -64,6 +70,7 @@ assign reset = reset_seq[0];
 
 logic [31:0] io_debug_pc;
 logic [31:0] io_gpio_out;
+
 logic io_success;
 logic io_exit;
 
@@ -91,8 +98,10 @@ end
 assign led = ~io_gpio_out[5:0]; //~{3'b000, reset, io_success, io_exit};
 Top core(
 .clock(clock && !cpu_halt),
-.io_uart_tx(uart_tx), // UART送信出力ピン
+// .io_uart_tx(uart_tx), // UART送信出力ピン
 .io_uart_rx(uart_rx), // UART受信入力ピン
+.io_anodes(anodes), // 7セグメントLEDのアノード制御信号
+.io_cathodes(cathodes), // 7セグメントLEDのカソード制御信号
 .*
 );
 

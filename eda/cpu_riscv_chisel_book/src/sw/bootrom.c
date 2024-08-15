@@ -20,15 +20,15 @@ static volatile uint32_t *const REG_UART_RX = (volatile uint32_t *)0xC0000000;
 
 void __attribute__((noreturn)) main(void)
 {
-    uint32_t led_out = 1;
     uint8_t *str;
     while (1)
     {
-        while (*(volatile uint32_t *)0xC0000004 == 0x0)
-            ;
-        str = (uint8_t *)0xC0000000;
+        // while (*(volatile uint32_t *)0xC0000004 == 0x0)
+        //     ;
+        // str = (uint8_t *)0xC0000000;
         while (*(volatile uint32_t *)0xB0000004 == 0x0)
             ;
-        *(uint32_t *)0xB0000000 = (uint32_t) * (str);
+        // *(uint32_t *)0xB0000000 = (uint32_t) * (str);
+        *(uint32_t *)0xB0000000 = 0x41;
     }
 }
